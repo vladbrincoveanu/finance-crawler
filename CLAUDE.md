@@ -1,3 +1,8 @@
+## Rules
+Follow `~/.claude/rules/12-rule-template.md` for every task in this project unless explicitly overridden below.
+
+---
+
 # CLAUDE.md - Guide for ValueInvestorsClub Codebase
 
 ## IMPORTANT: ALWAYS USE DOCKER
@@ -78,3 +83,6 @@ The project uses GitHub Actions with Docker-based testing:
 - Environment variables (CI=true, SKIP_DB_VERIFY=true) set automatically
 
 **Always run Docker-based tests locally before pushing**: `./run_tests_docker.sh`
+## Codebase Exploration
+
+Default to `graphify query "<question>"` over `grep` for codebase exploration questions. Full rule (with freshness check + fallback conditions): see global `~/.claude/CLAUDE.md` §"Graph-First Codebase Exploration". Build the graph for any project >50 files with `/graphify .` — one-time cost amortized across all future questions.
