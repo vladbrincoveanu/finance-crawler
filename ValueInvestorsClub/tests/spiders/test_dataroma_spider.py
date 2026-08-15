@@ -47,3 +47,33 @@ def test_parse_holdings_yields_one_history_request_per_stock():
     assert aapl.url == "https://www.dataroma.com/m/hist/hist.php?f=BRK&s=AAPL"
     assert aapl.meta["company_name"] == "Apple Inc."
     assert aapl.meta["investor_slug"] == "BRK"
+
+
+def test_parse_stock_history_yields_one_holding_item_per_quarter():
+    spider = DataromaSpider()
+    hist_url = "https://www.dataroma.com/m/hist/hist.php?f=BRK&s=AAPL"
+    # Response.meta proxies to Request.meta (no setter of its own in scrapy>=2.x),
+    # so the meta must be attached via the Request, as it would be in a real crawl.
+    request = scrapy.Request(
+        hist_url,
+        meta={
+            "investor_slug": "BRK",
+            "investor_name": "Warren Buffett - Berkshire Hathaway",
+            "investor_profile_url": "https://www.dataroma.com/m/holdings.php?m=BRK",
+            "ticker": "AAPL",
+            "company_name": "Apple Inc.",
+        },
+    )
+    body = (FIXTURES / "hist_brk_aapl.html").read_bytes()
+    response = HtmlResponse(url=hist_url, body=body, request=request)
+
+    items = list(spider.parse_stock_history(response))
+
+    q2 = next(i for i in items if i["quarter_date"] == "2026-06-30")
+    assert q2["shares"] == 227917808
+    assert q2["pct_portfolio"] == 22.04
+    assert q2["activity"] == "hold"
+    assert round(q2["value_usd"]) == round(227917808 * 289.36)
+
+    q4_2025 = next(i for i in items if i["quarter_date"] == "2025-12-31")
+    assert q4_2025["activity"] == "reduce"

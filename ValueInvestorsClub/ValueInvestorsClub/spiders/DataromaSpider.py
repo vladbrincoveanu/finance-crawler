@@ -1,4 +1,38 @@
+import re
+from datetime import date
+
 import scrapy
+
+from ValueInvestorsClub.ValueInvestorsClub.holding_items import HoldingItem
+
+_QUARTER_END = {"Q1": (3, 31), "Q2": (6, 30), "Q3": (9, 30), "Q4": (12, 31)}
+
+
+def _parse_period(text: str) -> str:
+    # "2026 \xa0Q2" -> "2026-06-30"
+    m = re.search(r"(\d{4}).*?(Q[1-4])", text or "")
+    if not m:
+        return ""
+    year, quarter = int(m.group(1)), m.group(2)
+    month, day = _QUARTER_END[quarter]
+    return date(year, month, day).isoformat()
+
+
+def _parse_money(text: str) -> float:
+    return float((text or "").replace("$", "").replace(",", "") or 0)
+
+
+def _parse_activity(text: str) -> str:
+    t = (text or "").strip()
+    if not t:
+        return "hold"
+    if t.startswith("Buy"):
+        return "buy"
+    if t.startswith("Add"):
+        return "add"
+    if t.startswith("Reduce"):
+        return "reduce"
+    return "hold"
 
 
 class DataromaSpider(scrapy.Spider):
@@ -48,6 +82,29 @@ class DataromaSpider(scrapy.Spider):
             )
 
     def parse_stock_history(self, response):
-        # Implemented in Task 5
-        return
-        yield  # pragma: no cover
+        for row in response.xpath("//table[@id='grid']/tbody/tr"):
+            cells = row.xpath("./td")
+            if len(cells) < 6:
+                continue
+            quarter_date = _parse_period(cells[0].xpath("string()").get())
+            shares_text = (cells[1].xpath("string()").get() or "").replace(",", "").strip()
+            if not quarter_date or not shares_text:
+                continue
+            shares = int(shares_text)
+            pct = float((cells[2].xpath("string()").get() or "0").strip() or 0)
+            activity = _parse_activity(cells[3].xpath("string()").get())
+            price = _parse_money(cells[5].xpath("string()").get())
+
+            yield HoldingItem(
+                investor_name=response.meta["investor_name"],
+                investor_source="dataroma",
+                investor_slug=response.meta["investor_slug"],
+                investor_profile_url=response.meta["investor_profile_url"],
+                ticker=response.meta["ticker"],
+                company_name=response.meta["company_name"],
+                quarter_date=quarter_date,
+                shares=shares,
+                value_usd=shares * price,
+                pct_portfolio=pct,
+                activity=activity,
+            )
