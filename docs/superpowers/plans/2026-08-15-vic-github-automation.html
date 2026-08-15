@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>VIC Scraper — GitHub Actions Automation</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; max-width: 900px; margin: 40px auto; padding: 0 20px; color: #1e1e1e; line-height: 1.55; }
+  h1 { font-size: 1.7rem; border-bottom: 3px solid #1971c2; padding-bottom: 8px; }
+  h2 { font-size: 1.15rem; margin-top: 2rem; color: #1971c2; }
+  code, pre { background: #f1f3f5; border-radius: 4px; }
+  code { padding: 1px 6px; font-size: 0.9em; }
+  pre { padding: 12px 16px; overflow-x: auto; font-size: 0.85rem; }
+  .step { border-left: 4px solid #1971c2; padding: 4px 0 4px 14px; margin: 10px 0; background: #f8f9fa; }
+  .flow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 1rem 0; }
+  .box { border: 2px solid #1971c2; background: #a5d8ff33; padding: 8px 14px; border-radius: 8px; font-size: 0.85rem; text-align: center; }
+  .arrow { font-size: 1.3rem; color: #868e96; }
+  .not-yet { color: #c92a2a; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<h1>How the GitHub Actions piece will work</h1>
+<p><span class="not-yet">Not yet implemented</span> — this page explains the design; nothing below has been written to <code>.github/workflows/</code> yet. Execution happens after <code>/clear</code>.</p>
+
+<h2>What already exists</h2>
+<p><code>.github/workflows/weekly_ingest.yml</code> already runs on a cron schedule (Mondays 03:00 UTC) plus manual <code>workflow_dispatch</code>. It spins up a Postgres service container and calls <code>scripts/weekly_refresh.sh</code>. This doesn't need a webhook — GitHub's own scheduler triggers it; no external hook required.</p>
+
+<h2>The gap: backfilling 13,925 ideas doesn't fit a weekly cron</h2>
+<p>At ~10-12s/request, the full backlog takes ~38-40 hours. GitHub Actions caps a single job at 6 hours (hosted runners) — one run can't finish it. That's exactly why <code>backfill_ideas.sh</code> is checkpointed: each run does one batch (default 500 links, ~1.5-2h) and stops.</p>
+
+<h2>Proposed automation flow</h2>
+<div class="flow">
+  <div class="box">GitHub Actions<br><small>scheduled cron (e.g. every 6h)</small></div>
+  <div class="arrow">→</div>
+  <div class="box">checkout repo<br>+ spin up Postgres service</div>
+  <div class="arrow">→</div>
+  <div class="box"><code>scripts/backfill_ideas.sh</code><br><small>one batch, reads/writes checkpoint</small></div>
+  <div class="arrow">→</div>
+  <div class="box">commit updated<br><code>data/backfill_checkpoint.json</code><br>back to the branch</div>
+</div>
+<p>Once <code>offset == total</code> in the checkpoint, the backfill workflow is effectively done (later runs are instant no-ops), and <code>weekly_ingest.yml</code> takes over permanently for incremental updates only (already changed to <code>RESET_DB=0</code> in the plan).</p>
+
+<h2>Concrete steps (for the fresh session to implement)</h2>
+<div class="step"><strong>1.</strong> New workflow file <code>.github/workflows/vic_backfill.yml</code> — same Postgres-service pattern as <code>weekly_ingest.yml</code>, but on a tighter schedule (e.g. <code>0 */6 * * *</code>), calling <code>scripts/backfill_ideas.sh</code> instead of <code>weekly_refresh.sh</code>.</div>
+<div class="step"><strong>2.</strong> Because each GH Actions run is a fresh checkout, the checkpoint file must be committed back after each batch — add a step: <code>git config</code> a bot identity, <code>git add data/backfill_checkpoint.json</code>, commit + push if changed. This is the one piece needing a repo-write permission (<code>contents: write</code> in the workflow's <code>permissions:</code> block) — a real "outbound action," so this step gets flagged for your explicit approval before the workflow is enabled, per this session's standing rule on pushes/writes.</div>
+<div class="step"><strong>3.</strong> <code>VIC_USERNAME</code>/<code>VIC_PASSWORD</code> go into GitHub repo secrets (Settings → Secrets → Actions), referenced as <code>${{ secrets.VIC_USERNAME }}</code> — never in the workflow file itself.</div>
+<div class="step"><strong>4.</strong> Postgres data itself: since GH Actions Postgres service containers are ephemeral per-run, the scraped rows only persist if the workflow also exports/pushes them somewhere durable (e.g. a DB dump artifact, or pointing <code>DATABASE_URL</code> at your real persistent DB instead of the ephemeral CI one). Worth deciding before enabling: <strong>does backfill write to a real hosted Postgres, or to CI's throwaway one?</strong> — flagging this now since it changes the workflow's DB connection config.</div>
+<div class="step"><strong>5.</strong> Optional: a Slack/Discord webhook step reporting batch progress (<code>offset/total</code>) — deferred unless you want it; not required for the core loop to work.</div>
+
+<h2>Why no proxy/anti-detection setup is in this flow</h2>
+<p>Same finding as before: the site isn't blocking requests. GitHub Actions runners use rotating cloud IPs (Azure ranges) which is a separate consideration from bans — if VIC ever rate-limits <em>CI</em> IPs specifically, <code>BanAwareThrottleMiddleware</code> will surface it in the logs (backoff/abort), and that's the point to reassess, not before.</p>
+
+</body>
+</html>
