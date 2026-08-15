@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Holdings Crawler Design — Dataroma + HedgeFollow</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+  body { font-family: -apple-system, Helvetica, Arial, sans-serif; max-width: 960px; margin: 40px auto; padding: 0 20px; color: #1a1a1a; line-height: 1.55; }
+  h1 { font-size: 1.6em; border-bottom: 2px solid #333; padding-bottom: 8px; }
+  h2 { font-size: 1.25em; margin-top: 2.2em; color: #333; }
+  .section { margin-bottom: 2em; }
+  .mermaid { background: #fafafa; border: 1px solid #ddd; border-radius: 6px; padding: 16px; margin: 12px 0; }
+  code { background: #f0f0f0; padding: 2px 5px; border-radius: 3px; font-size: 0.9em; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+  th, td { border: 1px solid #ccc; padding: 6px 10px; text-align: left; font-size: 0.92em; }
+  th { background: #eee; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 0.75em; font-weight: bold; }
+  .badge.rec { background: #d4edda; color: #155724; }
+  .risk { background: #fff3cd; padding: 10px 14px; border-left: 4px solid #e0a800; margin: 10px 0; }
+</style>
+</head>
+<body>
+
+<h1>Holdings Crawler Design — Dataroma + HedgeFollow</h1>
+<p><em>Status: draft — Aug 15, 2026. Companion, separate pipeline to the existing VIC idea-scraper.</em></p>
+
+<div class="section">
+<h2>1. Why a separate pipeline from VIC</h2>
+<p>VIC scrapes dated <strong>idea writeups</strong> (one author, one stock thesis, one date). Dataroma and HedgeFollow are <strong>13F holdings aggregators</strong>: investor × quarter × company snapshots. Different shape, different cadence, different update cardinality. Forcing one schema across all three would corrupt VIC's data or flatten the holdings data. Decision: two independent pipelines, sharing infra (Scrapy project, DB, politeness helpers) but not the data model. Optional future join: by ticker/investor-name only, not a schema dependency.</p>
+</div>
+
+<div class="section">
+<h2>2. Architecture</h2>
+<div class="mermaid">
+graph TD
+  subgraph Existing
+    VICSpider[IdeaSpider.py] --> VICItems[ValueinvestorsclubItem]
+    VICItems --> VICPipeline[pipelines.py] --> VICDB[(Idea / Description / Catalysts)]
+  end
+  subgraph New
+    DRSpider[DataromaSpider.py] --> HoldingItem
+    HFSpider[HedgeFollowSpider.py] --> HoldingItem
+    HoldingItem --> HoldingPipeline[HoldingPipeline]
+    HoldingPipeline --> HDB[(Investor / Holding)]
+  end
+  Company[(Company - existing, ticker keyed)] -.optional FK.-> HDB
+  Company -.existing FK.-> VICDB
+</div>
+</div>
+
+<div class="section">
+<h2>3. Data model</h2>
+<div class="mermaid">
+erDiagram
+  INVESTOR ||--o{ HOLDING : has
+  COMPANY ||--o{ HOLDING : "held as"
+  INVESTOR {
+    int id PK
+    string name
+    string source "dataroma | hedgefollow"
+    string source_slug "e.g. BRK"
+    string profile_url
+  }
+  HOLDING {
+    int id PK
+    int investor_id FK
+    int company_id FK
+    date quarter_date
+    bigint shares
+    numeric value_usd
+    numeric pct_portfolio
+    string activity "buy/add/reduce/sell/hold"
+  }
+  COMPANY {
+    int id PK
+    string ticker
+    string name
+  }
+</div>
+<p>No changes to existing <code>Company</code>, <code>User</code>, <code>Idea</code>, <code>Description</code>, <code>Catalysts</code>, <code>Performance</code> tables. <code>Company</code> is reused read/write (create-if-missing by ticker); everything else in this pipeline is new.</p>
+</div>
+
+<div class="section">
+<h2>4. Crawl flow &amp; scope <span class="badge rec">Dataroma first</span></h2>
+<div class="mermaid">
+sequenceDiagram
+  participant S as Spider
+  participant W as Target site
+  participant DB as Postgres
+  S->>W: GET /m/home.php (superinvestor list, 83)
+  loop each investor
+    S->>W: GET /m/holdings.php?m=CODE (current quarter)
+    S->>W: GET /m/hist/p_hist.php?f=CODE (quarter history)
+    W-->>S: HTML holdings table
+    S->>DB: upsert Investor, Holding rows
+  end
+  Note over S,W: Same politeness pattern as lib_vic_scrape.sh:<br/>browser UA/headers, rate limit, checkpointed resume
+</div>
+<table>
+<tr><th>Site</th><th>Scope v1</th><th>Order</th><th>Known blocker</th></tr>
+<tr><td>Dataroma</td><td>83 curated superinvestors</td><td>1st</td><td>ModSecurity WAF rejects plain <code>curl</code> — needs browser-like headers</td></tr>
+<tr><td>HedgeFollow</td><td>Curated subset (~80–200, name-matched to Dataroma where possible)</td><td>2nd</td><td>Untested at scale; 10,000+ funds total, full crawl out of scope for v1</td></tr>
+</table>
+<div class="risk"><strong>Known risk carried over from VIC:</strong> the VIC scraper is currently blocked by the site (ConnectionLost on all requests). Dataroma's WAF response to a bare <code>curl</code> is the same class of problem. First implementation step for each new spider is a manual probe (Scrapy shell / browser-header curl) to confirm access before writing full spider logic — not assumed to "just work" because robots.txt is permissive.</div>
+</div>
+
+<div class="section">
+<h2>5. Testing</h2>
+<ul>
+<li>Unit tests: fixture HTML → parsed <code>HoldingItem</code>, mirroring existing VIC spider test style.</li>
+<li>Schema validation script extended to cover <code>Investor</code>/<code>Holding</code> tables.</li>
+<li>No UI/frontend surface in this spec — backend/data pipeline only, so no Playwright DOM verification loop applies (that rule is for <code>ui_scope: true</code> work).</li>
+</ul>
+</div>
+
+<div class="section">
+<h2>Module design blocks</h2>
+<h3>Module: DataromaSpider</h3>
+<table>
+<tr><td><strong>Responsibility</strong></td><td>Crawl Dataroma's 83 superinvestor list + per-investor current + historical holdings pages, yield <code>HoldingItem</code>s</td></tr>
+<tr><td><strong>Interface</strong></td><td>Standard Scrapy spider; output → <code>HoldingPipeline</code></td></tr>
+<tr><td><strong>Dependencies</strong></td><td>Shared politeness config (rate limit, UA/headers), <code>HoldingItem</code></td></tr>
+<tr><td><strong>Size target</strong></td><td>&lt;200 lines; parsing helpers factored out if needed</td></tr>
+</table>
+<h3>Module: HedgeFollowSpider</h3>
+<table>
+<tr><td><strong>Responsibility</strong></td><td>Crawl curated subset of HedgeFollow funds, same output shape as DataromaSpider</td></tr>
+<tr><td><strong>Interface</strong></td><td>Standard Scrapy spider; output → <code>HoldingPipeline</code></td></tr>
+<tr><td><strong>Dependencies</strong></td><td>Curated fund list (built from Dataroma investor names + HedgeFollow fund directory), shared politeness config</td></tr>
+<tr><td><strong>Size target</strong></td><td>&lt;200 lines</td></tr>
+</table>
+<h3>Module: HoldingPipeline</h3>
+<table>
+<tr><td><strong>Responsibility</strong></td><td>Upsert <code>Investor</code>/<code>Company</code>/<code>Holding</code> rows from <code>HoldingItem</code>s, dedupe by (investor, company, quarter_date)</td></tr>
+<tr><td><strong>Interface</strong></td><td>Scrapy item pipeline; reads <code>HoldingItem</code>, writes via SQLAlchemy session</td></tr>
+<tr><td><strong>Dependencies</strong></td><td>SQLAlchemy models (<code>Investor</code>, <code>Holding</code>, existing <code>Company</code>)</td></tr>
+<tr><td><strong>Size target</strong></td><td>&lt;200 lines</td></tr>
+</table>
+</div>
+
+<script>mermaid.initialize({ startOnLoad: true, theme: 'neutral' });</script>
+</body>
+</html>
