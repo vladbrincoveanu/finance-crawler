@@ -4,7 +4,12 @@ from datetime import date as date_cls
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
-from ValueInvestorsClub.ValueInvestorsClub.models import Base, Investor, Company, Holding
+try:
+    # scrapy CLI runtime: PYTHONPATH puts the inner ValueInvestorsClub/ dir first
+    from ValueInvestorsClub.models import Base, Investor, Company, Holding
+except ModuleNotFoundError:
+    # pytest runtime: pythonpath is the repo root only, so the package is nested
+    from ValueInvestorsClub.ValueInvestorsClub.models import Base, Investor, Company, Holding
 
 
 class HoldingPipeline:

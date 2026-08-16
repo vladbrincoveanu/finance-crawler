@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Holdings crawler deploy + simple UI — design</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+body{font-family:system-ui,sans-serif;max-width:900px;margin:2rem auto;padding:0 1rem;line-height:1.5;color:#222}
+h1,h2{color:#111}
+code{background:#f4f4f4;padding:1px 5px;border-radius:3px}
+pre{background:#f4f4f4;padding:10px;border-radius:6px;overflow-x:auto}
+table{border-collapse:collapse;width:100%}
+td,th{border:1px solid #ccc;padding:6px 10px;text-align:left;font-size:.9em}
+.mermaid{background:#fafafa;padding:1rem;border-radius:8px}
+</style>
+</head>
+<body>
+
+<h1>Deploy Dataroma holdings crawler + minimal holdings UI</h1>
+
+<h2>1. Scope</h2>
+<p>Two parts, same session:</p>
+<ol>
+<li><b>Deploy/try:</b> run DataromaSpider against the live site (local docker-compose), limited to 5 investors first, PIPELINE_MODE=holdings so HoldingPipeline upserts into Postgres.</li>
+<li><b>UI:</b> one new page <code>/holdings</code> — flat table of investor + ticker + shares + value + quarter + activity, backed by one new API endpoint. No drill-down.</li>
+</ol>
+
+<h2>2. Data flow</h2>
+<div class="mermaid">
+flowchart LR
+  A[DataromaSpider live crawl] -->|HoldingItem| B[HoldingPipeline]
+  B -->|upsert| C[(Postgres: investors, companies, holdings)]
+  D[GET /holdings/] --> C
+  E[HoldingsPage.tsx] --> D
+</div>
+
+<h2>3. Crawl limit mechanism</h2>
+<p>New env var <code>DATAROMA_INVESTOR_LIMIT</code>, read in <code>parse_home</code>, same style as existing <code>IDEA_LINKS_LIMIT</code> in IdeaSpider. Default 0 = no limit (full 83). Set to 5 for this run.</p>
+
+<h2>4. API endpoint</h2>
+<p>New file <code>api/routes/holdings.py</code>, same shape as <code>companies.py</code>:</p>
+<pre>GET /holdings/?skip=0&amp;limit=100
+-> list of { investor_name, ticker, company_name, quarter_date, shares, value_usd, pct_portfolio, activity }</pre>
+<p>Join Holding + Investor + Company. Requires adding <code>Investor</code>/<code>Holding</code> to <code>api/models/__init__.py</code> (currently missing) and a <code>HoldingResponse</code> Pydantic schema.</p>
+
+<h2>5. Frontend</h2>
+<p>New <code>frontend/src/pages/HoldingsPage.tsx</code>, route <code>/holdings</code> added to <code>App.tsx</code> + nav link in <code>Layout.tsx</code>. Plain HTML table, no charts, no filters — matches "keep it really really simple". Fetches <code>/holdings/</code> via existing axios client pattern (see <code>CompaniesPage.tsx</code>).</p>
+
+<h2>6. Module design blocks</h2>
+
+<h3>Module: DataromaSpider investor-limit slicing</h3>
+<ul>
+<li><b>Responsibility:</b> cap how many investors get crawled per run via env var.</li>
+<li><b>Interface:</b> reads <code>DATAROMA_INVESTOR_LIMIT</code> in <code>parse_home</code>, slices investor list before yielding requests.</li>
+<li><b>Dependencies:</b> none new.</li>
+<li><b>Size target:</b> +5 lines to existing spider.</li>
+</ul>
+
+<h3>Module: api/routes/holdings.py</h3>
+<ul>
+<li><b>Responsibility:</b> read-only endpoint returning joined holding rows.</li>
+<li><b>Interface:</b> <code>GET /holdings/</code> — query params skip/limit, returns <code>List[HoldingResponse]</code>.</li>
+<li><b>Dependencies:</b> <code>api.database.get_db</code>, <code>api.models.Investor/Holding/Company</code>, <code>api.schemas.HoldingResponse</code>.</li>
+<li><b>Size target:</b> ~30 lines, mirrors <code>companies.py</code>.</li>
+</ul>
+
+<h3>Module: frontend/src/pages/HoldingsPage.tsx</h3>
+<ul>
+<li><b>Responsibility:</b> render holdings table.</li>
+<li><b>Interface:</b> no props, fetches on mount, renders <code>&lt;table&gt;</code>.</li>
+<li><b>Dependencies:</b> axios client, existing loading/error pattern from <code>CompaniesPage.tsx</code>.</li>
+<li><b>Size target:</b> under 100 lines.</li>
+</ul>
+
+<h2>7. Error handling</h2>
+<p>Crawl: existing ban-aware throttle + retry settings apply unchanged (already wired for IdeaSpider, shared settings.py). If probe_dataroma.sh fails pre-crawl, abort before hitting live site. API: standard FastAPI validation, empty list if no data yet (not a 404 — matches companies/users endpoints).</p>
+
+<h2>8. Testing</h2>
+<p><code>test_scope: true</code>. New: <code>api/tests/test_holdings_api.py</code> (endpoint returns joined rows, empty-list case). Playwright DOM check on <code>/holdings</code> page after frontend build — table renders with expected row count once seeded.</p>
+
+<h2>9. Out of scope (explicitly)</h2>
+<ul>
+<li>No GitHub Actions / weekly_ingest.yml wiring this pass.</li>
+<li>No investor detail page, no filters/search, no charts.</li>
+<li>No full 83-investor crawl this pass — 5 only, to verify live pipeline first.</li>
+</ul>
+
+<script>mermaid.initialize({startOnLoad:true});</script>
+</body>
+</html>

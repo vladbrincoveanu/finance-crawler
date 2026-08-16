@@ -3,7 +3,12 @@ from datetime import date
 
 import scrapy
 
-from ValueInvestorsClub.ValueInvestorsClub.holding_items import HoldingItem
+try:
+    # scrapy CLI runtime: PYTHONPATH puts the inner ValueInvestorsClub/ dir first
+    from ValueInvestorsClub.holding_items import HoldingItem
+except ModuleNotFoundError:
+    # pytest runtime: pythonpath is the repo root only, so the package is nested
+    from ValueInvestorsClub.ValueInvestorsClub.holding_items import HoldingItem
 
 _QUARTER_END = {"Q1": (3, 31), "Q2": (6, 30), "Q3": (9, 30), "Q4": (12, 31)}
 
