@@ -104,9 +104,9 @@ RANDOM_UA_TYPE = os.getenv("RANDOM_UA_TYPE", "desktop.chrome")
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 #
-# Default behavior: export best-effort teaser + comments to filesystem grouped by ticker.
-# SQL ingestion runs only when enabled (PIPELINE_MODE includes "sql") and items have required fields.
-_pipeline_mode = (os.getenv("PIPELINE_MODE", "file").strip().lower() or "file")
+# Default behavior: ingest directly into Postgres via SqlPipeline.
+# File export only runs when explicitly requested (PIPELINE_MODE includes "file").
+_pipeline_mode = (os.getenv("PIPELINE_MODE", "sql").strip().lower() or "sql")
 _pipelines = {}
 if "file" in _pipeline_mode or _pipeline_mode in {"fs", "filesystem"}:
     _pipelines["ValueInvestorsClub.pipelines.FileExportPipeline"] = 200
