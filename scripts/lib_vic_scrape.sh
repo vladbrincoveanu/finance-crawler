@@ -88,6 +88,7 @@ vic_run_python_stdin() {
 }
 
 vic_run_scrapy() {
+  local spider_name="${1:-IdeaSpider}"
   if [ "$USE_DOCKER" -eq 1 ]; then
     docker-compose exec -T \
       -e PYTHONPATH="/app/ValueInvestorsClub:/app" \
@@ -119,9 +120,10 @@ vic_run_scrapy() {
       -e VIC_USERNAME="$VIC_USERNAME" \
       -e VIC_PASSWORD="$VIC_PASSWORD" \
       -e VIC_ENABLE_LOGIN="$VIC_ENABLE_LOGIN" \
-      "$DOCKER_SERVICE" sh -lc "cd ValueInvestorsClub && scrapy crawl IdeaSpider"
+      -e PIPELINE_MODE="$PIPELINE_MODE" \
+      "$DOCKER_SERVICE" sh -lc "cd ValueInvestorsClub && scrapy crawl $spider_name"
   else
-    (cd ValueInvestorsClub && scrapy crawl IdeaSpider)
+    (cd ValueInvestorsClub && scrapy crawl "$spider_name")
   fi
 }
 
