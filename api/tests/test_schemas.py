@@ -308,3 +308,9 @@ def test_production_database_tables_exist():
     except Exception as e:
         pytest.fail(f"Failed to connect to the production database: {str(e)}.\n"
                    f"Make sure the database is running and properly configured.")
+
+
+def test_investor_and_holding_models_importable():
+    from api.models import Investor, Holding
+    assert Investor.__tablename__ == "investors"
+    assert Holding.__tablename__ == "holdings"
