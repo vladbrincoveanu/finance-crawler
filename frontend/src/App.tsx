@@ -10,8 +10,11 @@ import Layout from './components/Layout';
 import HomePage from './pages/HomePage';
 import IdeasPage from './pages/IdeasPage';
 import IdeaDetailPage from './pages/IdeaDetailPage';
+import ArticlesPage from './pages/ArticlesPage';
+import ArticleDetailPage from './pages/ArticleDetailPage';
 import CompaniesPage from './pages/CompaniesPage';
 import UsersPage from './pages/UsersPage';
+import HoldingsPage from './pages/HoldingsPage';
 import AboutPage from './pages/AboutPage';
 
 function App() {
@@ -61,7 +64,7 @@ function App() {
           </AlertTitle>
           <AlertDescription maxWidth="sm">
             Unable to connect to the API. Please ensure the API server is running at
-            http://localhost:8000 and refresh the page.
+            http://localhost:8010 and refresh the page.
           </AlertDescription>
         </Alert>
       </Center>
@@ -74,8 +77,11 @@ function App() {
         <Route index element={<HomePage />} />
         <Route path="ideas" element={<IdeasPage />} />
         <Route path="ideas/:id" element={<IdeaDetailPage />} />
+        <Route path="articles" element={<ArticlesPage />} />
+        <Route path="articles/:id" element={<ArticleDetailPage />} />
         <Route path="companies" element={<CompaniesPage />} />
         <Route path="users" element={<UsersPage />} />
+        <Route path="holdings" element={<HoldingsPage />} />
         <Route path="about" element={<AboutPage />} />
       </Route>
     </Routes>

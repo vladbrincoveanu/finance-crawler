@@ -206,12 +206,20 @@ const NAV_ITEMS: Array<NavItem> = [
     href: '/ideas',
   },
   {
+    label: 'Articles',
+    href: '/articles',
+  },
+  {
     label: 'Companies',
     href: '/companies',
   },
   {
     label: 'Users',
     href: '/users',
+  },
+  {
+    label: 'Holdings',
+    href: '/holdings',
   },
 ];
 

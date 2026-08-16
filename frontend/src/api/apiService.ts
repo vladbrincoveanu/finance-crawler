@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Idea, IdeaDetail, Company, User, ListParams, Performance } from '../types/api';
+import { Idea, IdeaDetail, Company, User, Holding, ListParams, Performance } from '../types/api';
 
 // Base API URL - Use environment variable with fallback
 const API_URL = '/api';
@@ -84,6 +84,14 @@ export const companiesApi = {
 export const usersApi = {
   getUsers: async (params: ListParams = {}): Promise<User[]> => {
     const response = await apiClient.get('/users/', { params });
+    return response.data;
+  },
+};
+
+// Holdings API
+export const holdingsApi = {
+  getHoldings: async (params: ListParams = {}): Promise<Holding[]> => {
+    const response = await apiClient.get('/holdings/', { params });
     return response.data;
   },
 };

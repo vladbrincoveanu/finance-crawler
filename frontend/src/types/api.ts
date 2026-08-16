@@ -18,6 +18,17 @@ export interface User {
   user_link: string;
 }
 
+export interface Holding {
+  investor_name: string;
+  ticker: string;
+  company_name: string;
+  quarter_date: string;
+  shares: number;
+  value_usd: number;
+  pct_portfolio: number;
+  activity: string;
+}
+
 export interface Description {
   description: string;
 }
