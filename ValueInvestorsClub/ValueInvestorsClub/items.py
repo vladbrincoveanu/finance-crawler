@@ -52,6 +52,17 @@ class ValueinvestorsclubItem(scrapy.Item):
     
     # This is the catalyst of the idea
     catalysts = scrapy.Field()
+
+    # Best-effort message/comments text (may be empty without login)
+    messages = scrapy.Field()
+
+    # Extra export helpers (used by filesystem exporter)
+    idea_id = scrapy.Field()
+    date_iso = scrapy.Field()
+    comments = scrapy.Field()
+
+    # Image URLs found in the idea's description/body
+    photos = scrapy.Field()
     
     # This is the price at the time of the article
     price = scrapy.Field()

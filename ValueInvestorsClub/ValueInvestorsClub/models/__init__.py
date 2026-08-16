@@ -14,6 +14,8 @@ from .Catalysts import Catalysts
 from .Performance import Performance
 from .Investor import Investor
 from .Holding import Holding
+from .Comment import Comment
+from .Photo import Photo
 
 __all__ = [
     "Base",
@@ -25,4 +27,6 @@ __all__ = [
     "Performance",
     "Investor",
     "Holding",
+    "Comment",
+    "Photo",
 ]
