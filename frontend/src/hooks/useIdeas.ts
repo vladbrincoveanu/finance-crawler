@@ -4,8 +4,7 @@ import { Idea, IdeaDetail, ListParams, Performance } from '../types/api';
 
 export function useIdeas(params: ListParams = {}, options?: UseQueryOptions<Idea[]>) {
   return useQuery<Idea[]>(
-    // Use a stable key that doesn't include the skip parameter to enable data merging
-    ['ideas', { ...params, skip: undefined }],
+    ['ideas', params],
     () => ideasApi.getIdeas(params),
     {
       // Keep previous data and append new data when loading more

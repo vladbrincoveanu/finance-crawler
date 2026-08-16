@@ -34,6 +34,25 @@ const UsersPage: React.FC = () => {
 
   const { data: users, isLoading, isError, error } = useUsers(filters);
 
+  // Keep track of all loaded users and seen ids to prevent duplicates
+  const [allUsers, setAllUsers] = useState<typeof users>([]);
+  const seenUserLinks = React.useRef(new Set<string>());
+
+  React.useEffect(() => {
+    if (users) {
+      if (filters.skip === 0) {
+        seenUserLinks.current = new Set(users.map(u => u.user_link));
+        setAllUsers(users);
+      } else {
+        const newUsers = users.filter(u => !seenUserLinks.current.has(u.user_link));
+        newUsers.forEach(u => seenUserLinks.current.add(u.user_link));
+        if (newUsers.length > 0) {
+          setAllUsers(prev => [...(prev || []), ...newUsers]);
+        }
+      }
+    }
+  }, [users, filters.skip]);
+
   const handleSearch = () => {
     setFilters(prev => ({
       ...prev,
@@ -71,7 +90,7 @@ const UsersPage: React.FC = () => {
       </Box>
 
       {/* Users Table */}
-      {isLoading && !users ? (
+      {isLoading && !allUsers?.length ? (
         <Flex justify="center" align="center" minH="300px">
           <Spinner size="xl" />
         </Flex>
@@ -83,7 +102,7 @@ const UsersPage: React.FC = () => {
             <Text>{error instanceof Error ? error.message : 'Unknown error occurred'}</Text>
           </Box>
         </Alert>
-      ) : users && users.length > 0 ? (
+      ) : allUsers && allUsers.length > 0 ? (
         <>
           <Box overflowX="auto">
             <Table variant="simple">
@@ -95,7 +114,7 @@ const UsersPage: React.FC = () => {
                 </Tr>
               </Thead>
               <Tbody>
-                {users.map((user) => (
+                {allUsers.map((user) => (
                   <Tr key={user.user_link}>
                     <Td fontWeight="bold">{user.username}</Td>
                     <Td>
@@ -120,8 +139,15 @@ const UsersPage: React.FC = () => {
           </Box>
 
           <Flex justify="center" mt={8}>
-            <Button onClick={loadMore} size="lg" colorScheme="blue">
-              Load More
+            <Button
+              onClick={loadMore}
+              size="lg"
+              colorScheme="blue"
+              isLoading={isLoading}
+              loadingText="Loading..."
+              isDisabled={!!users && users.length === 0}
+            >
+              {users && users.length === 0 ? 'No More Users' : 'Load More'}
             </Button>
           </Flex>
         </>

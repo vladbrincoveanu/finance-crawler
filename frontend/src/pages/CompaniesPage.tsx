@@ -33,6 +33,25 @@ const CompaniesPage: React.FC = () => {
 
   const { data: companies, isLoading, isError, error } = useCompanies(filters);
 
+  // Keep track of all loaded companies and seen tickers to prevent duplicates
+  const [allCompanies, setAllCompanies] = useState<typeof companies>([]);
+  const seenTickers = React.useRef(new Set<string>());
+
+  React.useEffect(() => {
+    if (companies) {
+      if (filters.skip === 0) {
+        seenTickers.current = new Set(companies.map(c => c.ticker));
+        setAllCompanies(companies);
+      } else {
+        const newCompanies = companies.filter(c => !seenTickers.current.has(c.ticker));
+        newCompanies.forEach(c => seenTickers.current.add(c.ticker));
+        if (newCompanies.length > 0) {
+          setAllCompanies(prev => [...(prev || []), ...newCompanies]);
+        }
+      }
+    }
+  }, [companies, filters.skip]);
+
   const handleSearch = () => {
     setFilters(prev => ({
       ...prev,
@@ -70,7 +89,7 @@ const CompaniesPage: React.FC = () => {
       </Box>
 
       {/* Companies Table */}
-      {isLoading && !companies ? (
+      {isLoading && !allCompanies?.length ? (
         <Flex justify="center" align="center" minH="300px">
           <Spinner size="xl" />
         </Flex>
@@ -82,7 +101,7 @@ const CompaniesPage: React.FC = () => {
             <Text>{error instanceof Error ? error.message : 'Unknown error occurred'}</Text>
           </Box>
         </Alert>
-      ) : companies && companies.length > 0 ? (
+      ) : allCompanies && allCompanies.length > 0 ? (
         <>
           <Box overflowX="auto">
             <Table variant="simple">
@@ -94,7 +113,7 @@ const CompaniesPage: React.FC = () => {
                 </Tr>
               </Thead>
               <Tbody>
-                {companies.map((company) => (
+                {allCompanies.map((company) => (
                   <Tr key={company.ticker}>
                     <Td fontWeight="bold">{company.ticker}</Td>
                     <Td>{company.company_name}</Td>
@@ -115,8 +134,15 @@ const CompaniesPage: React.FC = () => {
           </Box>
 
           <Flex justify="center" mt={8}>
-            <Button onClick={loadMore} size="lg" colorScheme="blue">
-              Load More
+            <Button
+              onClick={loadMore}
+              size="lg"
+              colorScheme="blue"
+              isLoading={isLoading}
+              loadingText="Loading..."
+              isDisabled={!!companies && companies.length === 0}
+            >
+              {companies && companies.length === 0 ? 'No More Companies' : 'Load More'}
             </Button>
           </Flex>
         </>
