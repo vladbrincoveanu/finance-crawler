@@ -314,3 +314,10 @@ def test_investor_and_holding_models_importable():
     from api.models import Investor, Holding
     assert Investor.__tablename__ == "investors"
     assert Holding.__tablename__ == "holdings"
+
+
+def test_holding_response_schema_fields():
+    from api.schemas import HoldingResponse
+    fields = HoldingResponse.model_fields.keys()
+    for f in ["investor_name", "ticker", "company_name", "quarter_date", "shares", "value_usd", "pct_portfolio", "activity"]:
+        assert f in fields

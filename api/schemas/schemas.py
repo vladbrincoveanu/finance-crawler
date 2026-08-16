@@ -2,7 +2,7 @@
 Pydantic models for request/response schemas for the ValueInvestorsClub API.
 """
 from typing import List, Optional, Dict
-from datetime import datetime
+from datetime import datetime, date
 from pydantic import BaseModel
 
 
@@ -61,6 +61,20 @@ class UserResponse(BaseModel):
     """User information."""
     username: str
     user_link: str
+
+    model_config = {"from_attributes": True}
+
+
+class HoldingResponse(BaseModel):
+    """A single investor holding in a company for a given quarter."""
+    investor_name: str
+    ticker: str
+    company_name: str
+    quarter_date: date
+    shares: int
+    value_usd: float
+    pct_portfolio: float
+    activity: str
 
     model_config = {"from_attributes": True}
 
