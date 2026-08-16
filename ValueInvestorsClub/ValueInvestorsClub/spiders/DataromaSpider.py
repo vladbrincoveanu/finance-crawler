@@ -1,3 +1,4 @@
+import os
 import re
 from datetime import date
 
@@ -50,7 +51,11 @@ class DataromaSpider(scrapy.Spider):
             yield scrapy.Request(url, callback=self.parse_home)
 
     def parse_home(self, response):
-        for link in response.xpath("//li/a[contains(@href, 'holdings.php?m=')]"):
+        limit = int(os.getenv("DATAROMA_INVESTOR_LIMIT", "0"))
+        links = response.xpath("//li/a[contains(@href, 'holdings.php?m=')]")
+        if limit > 0:
+            links = links[:limit]
+        for link in links:
             href = link.xpath("./@href").get() or ""
             slug = href.split("m=", 1)[-1]
             name = (link.xpath("./text()").get() or "").strip()

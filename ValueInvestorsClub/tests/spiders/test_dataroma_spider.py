@@ -25,6 +25,16 @@ def test_parse_home_yields_one_request_per_investor():
     assert brk.meta["investor_name"] == "Warren Buffett - Berkshire Hathaway"
 
 
+def test_parse_home_respects_investor_limit(monkeypatch):
+    monkeypatch.setenv("DATAROMA_INVESTOR_LIMIT", "2")
+    spider = DataromaSpider()
+    response = _response("home.html", "https://www.dataroma.com/m/home.php")
+
+    requests = list(spider.parse_home(response))
+
+    assert len(requests) == 2
+
+
 def test_parse_holdings_yields_one_history_request_per_stock():
     spider = DataromaSpider()
     holdings_url = "https://www.dataroma.com/m/holdings.php?m=BRK"
