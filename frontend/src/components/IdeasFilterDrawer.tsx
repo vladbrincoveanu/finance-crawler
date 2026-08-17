@@ -93,6 +93,7 @@ const IdeasFilterDrawer: React.FC<IdeasFilterDrawerProps> = ({
               <FormLabel htmlFor="ideas-position-filter">Position</FormLabel>
               <Select
                 id="ideas-position-filter"
+                aria-label="Position"
                 value={
                   draftFilters.is_short === undefined
                     ? 'all'
@@ -112,6 +113,7 @@ const IdeasFilterDrawer: React.FC<IdeasFilterDrawerProps> = ({
               <FormLabel htmlFor="ideas-winner-filter">Contest winner</FormLabel>
               <Select
                 id="ideas-winner-filter"
+                aria-label="Contest winner"
                 value={
                   draftFilters.is_contest_winner === undefined
                     ? 'all'
@@ -134,6 +136,7 @@ const IdeasFilterDrawer: React.FC<IdeasFilterDrawerProps> = ({
               <FormLabel htmlFor="ideas-performance-filter">Performance status</FormLabel>
               <Select
                 id="ideas-performance-filter"
+                aria-label="Performance status"
                 value={
                   draftFilters.has_performance === undefined
                     ? 'all'
@@ -157,6 +160,7 @@ const IdeasFilterDrawer: React.FC<IdeasFilterDrawerProps> = ({
                 <FormLabel htmlFor="ideas-min-performance">Min performance (%)</FormLabel>
                 <Input
                   id="ideas-min-performance"
+                  aria-label="Min performance"
                   type="number"
                   value={draftFilters.min_performance ?? ''}
                   onChange={event => updateDraft(
@@ -169,6 +173,7 @@ const IdeasFilterDrawer: React.FC<IdeasFilterDrawerProps> = ({
                 <FormLabel htmlFor="ideas-max-performance">Max performance (%)</FormLabel>
                 <Input
                   id="ideas-max-performance"
+                  aria-label="Max performance"
                   type="number"
                   value={draftFilters.max_performance ?? ''}
                   onChange={event => updateDraft(
@@ -183,6 +188,7 @@ const IdeasFilterDrawer: React.FC<IdeasFilterDrawerProps> = ({
               <FormLabel htmlFor="ideas-performance-period">Performance period</FormLabel>
               <Select
                 id="ideas-performance-period"
+                aria-label="Performance period"
                 value={draftFilters.performance_period || 'one_year_perf'}
                 onChange={event => updateDraft('performance_period', event.target.value)}
               >

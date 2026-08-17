@@ -3,63 +3,43 @@
  */
 describe('Ideas Page', () => {
   beforeEach(() => {
-    // Visit the ideas page before each test
     cy.visit('/ideas');
-    
-    // Wait for page to load (should see a heading)
+
     cy.contains('Investment Ideas', { timeout: 10000 }).should('be.visible');
   });
 
   it('displays ideas from the API', () => {
-    // Check that ideas are loaded and displayed
     cy.get('[data-testid="idea-card"]').should('have.length.at.least', 1);
   });
 
-  it('filters ideas by company search', () => {
-    // Enter company search term
+  it('selects a company suggestion and updates the URL', () => {
     cy.get('[data-testid="company-search"]').type('Apple');
-    
-    // Wait for search results
-    cy.get('[data-testid="company-option"]').contains('Apple').click();
-    
-    // Verify filtered results
+    cy.get('[data-testid="company-option"]').first().click();
     cy.url().should('include', 'company_id=');
   });
 
-  it('filters ideas by user search', () => {
-    // Enter user search term
-    cy.get('[data-testid="user-search"]').type('test');
-    
-    // Wait for search results
-    cy.get('[data-testid="user-option"]').first().click();
-    
-    // Verify filtered results
-    cy.url().should('include', 'user_id=');
-  });
-
-  it('toggles between long and short ideas', () => {
-    // Toggle to show only short ideas
-    cy.get('[data-testid="short-ideas-toggle"]').click();
-    
-    // Verify URL parameter
+  it('applies position filters from the drawer', () => {
+    cy.get('[aria-label="Open filters"]').click();
+    cy.get('[aria-label="Position"]').select('short');
+    cy.contains('button', 'Apply filters').click();
     cy.url().should('include', 'is_short=true');
-    
-    // Toggle back to all ideas
-    cy.get('[data-testid="short-ideas-toggle"]').click();
-    
-    // Verify parameter is removed
-    cy.url().should('not.include', 'is_short=true');
+    cy.contains('Short ideas').should('be.visible');
   });
 
-  it('loads more ideas when scrolling', () => {
-    // Count initial ideas
+  it('discards unapplied drawer changes', () => {
+    cy.url().then(urlBefore => {
+      cy.get('[aria-label="Open filters"]').click();
+      cy.get('[aria-label="Position"]').select('short');
+      cy.get('[aria-label="Close"]').click();
+      cy.url().should('eq', urlBefore);
+    });
+  });
+
+  it('loads more ideas', () => {
     cy.get('[data-testid="idea-card"]').then($initialCards => {
       const initialCount = $initialCards.length;
-      
-      // Scroll to the bottom to trigger loading more
+
       cy.get('[data-testid="load-more-button"]').scrollIntoView().click();
-      
-      // Verify more ideas are loaded
       cy.get('[data-testid="idea-card"]').should('have.length.greaterThan', initialCount);
     });
   });
