@@ -63,7 +63,7 @@ Rows use hover and focus-visible feedback without layout-shifting transforms. On
 
 ### URL and data flow
 
-Applied `ListParams` remain the single source of truth for `useIdeas`. Existing query parameters continue to hydrate initial state and update through `navigate(..., { replace: true })`. Draft drawer state never enters the query key until applied. The ideas endpoint does not implement its `search` parameter, so the search field uses existing company/user search endpoints for suggestions; selecting a company applies its exact ticker as `company_id`, and selecting an author applies its exact `user_link` as `user_id`. Clearing the selected suggestion removes that applied filter. Free text without a selected suggestion does not pretend to filter results.
+Applied supported `ListParams` remain the single source of truth for `useIdeas`. Supported query parameters continue to hydrate initial state and update through `navigate(..., { replace: true })`; unsupported legacy `search` text is not sent to the ideas endpoint. Draft drawer state never enters the query key until applied. The ideas endpoint does not implement its `search` parameter, so the search field uses existing company/user search endpoints for suggestions; selecting a company applies its exact ticker as `company_id`, and selecting an author applies its exact `user_link` as `user_id`. Clearing the selected suggestion removes that applied filter. Free text without a selected suggestion does not pretend to filter results.
 
 The existing append-on-load-more deduplication stays in place. Results remain an array because the API does not expose a total count; the UI reports loaded results rather than inventing a total.
 
