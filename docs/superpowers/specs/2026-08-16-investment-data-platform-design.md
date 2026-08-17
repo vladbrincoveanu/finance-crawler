@@ -7,6 +7,7 @@ graph_scope: false
 test_scope: true
 visual_companion: ./2026-08-16-investment-data-platform-design.html
 excalidraw: ./2026-08-16-investment-data-platform-design.excalidraw
+plan: ../plans/2026-08-16-investment-data-platform.md
 ---
 
 # Goal
