@@ -11,6 +11,10 @@ from api.schemas.schemas import (
     IdeaResponse,
     IdeaDetailResponse,
     HoldingResponse,
+    IdentityCandidateResponse,
+    IdentityDecisionRequest,
+    IdentityDecisionResponse,
+    QuarantineResponse,
 )
 
 __all__ = [
@@ -22,4 +26,8 @@ __all__ = [
     "IdeaResponse",
     "IdeaDetailResponse",
     "HoldingResponse",
+    "IdentityCandidateResponse",
+    "IdentityDecisionRequest",
+    "IdentityDecisionResponse",
+    "QuarantineResponse",
 ]

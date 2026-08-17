@@ -1,7 +1,7 @@
 """
 Pydantic models for request/response schemas for the ValueInvestorsClub API.
 """
-from typing import List, Optional, Dict
+from typing import Any, Dict, List, Literal, Optional
 from datetime import datetime, date
 from pydantic import BaseModel
 
@@ -99,5 +99,52 @@ class IdeaDetailResponse(IdeaResponse):
     description: Optional[DescriptionResponse] = None
     catalysts: Optional[CatalystsResponse] = None
     performance: Optional[PerformanceResponse] = None
+
+    model_config = {"from_attributes": True}
+
+
+class IdentityCandidateResponse(BaseModel):
+    id: str
+    entity_type: str
+    source_record_id: str
+    candidate_entity_id: Optional[str] = None
+    deterministic_score: Optional[float] = None
+    model_score: Optional[float] = None
+    evidence_json: Optional[Dict[str, Any]] = None
+    status: str
+
+    model_config = {"from_attributes": True}
+
+
+class IdentityDecisionRequest(BaseModel):
+    decision: Literal["approve", "reject", "defer", "create_new"]
+    curated_entity_id: Optional[str] = None
+    reviewer_id: Optional[str] = None
+
+
+class IdentityDecisionResponse(BaseModel):
+    id: str
+    candidate_id: str
+    entity_type: str
+    decision: str
+    curated_entity_id: Optional[str] = None
+    reviewer_id: Optional[str] = None
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class QuarantineResponse(BaseModel):
+    id: str
+    run_id: str
+    source: str
+    record_type: str
+    source_record_id: str
+    reason_code: str
+    reason_detail: Optional[str] = None
+    raw_payload: Optional[Dict[str, Any]] = None
+    review_status: str
+    created_at: datetime
+    reviewed_at: Optional[datetime] = None
 
     model_config = {"from_attributes": True}

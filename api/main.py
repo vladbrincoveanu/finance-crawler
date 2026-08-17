@@ -5,7 +5,14 @@ Creates the FastAPI application and includes all routes.
 import uvicorn
 from fastapi import FastAPI
 
-from api.routes import health_router, ideas_router, companies_router, users_router, holdings_router
+from api.routes import (
+    companies_router,
+    health_router,
+    holdings_router,
+    ideas_router,
+    review_router,
+    users_router,
+)
 
 # Create FastAPI app
 app = FastAPI(
@@ -20,6 +27,7 @@ app.include_router(ideas_router)
 app.include_router(companies_router)
 app.include_router(users_router)
 app.include_router(holdings_router)
+app.include_router(review_router)
 
 
 if __name__ == "__main__":
