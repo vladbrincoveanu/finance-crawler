@@ -13,6 +13,7 @@ from api.routes import (
     investors_router,
     ideas_router,
     review_router,
+    search_router,
     users_router,
 )
 from api.telemetry import configure_telemetry, span
@@ -40,6 +41,7 @@ app.include_router(users_router)
 app.include_router(holdings_router)
 app.include_router(review_router)
 app.include_router(investors_router)
+app.include_router(search_router)
 
 
 if __name__ == "__main__":

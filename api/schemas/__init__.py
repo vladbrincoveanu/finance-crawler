@@ -21,6 +21,7 @@ from api.schemas.schemas import (
     CuratedHoldingResponse,
     CuratedInvestorDetailResponse,
     CuratedSecurityResponse,
+    SearchResultResponse,
 )
 
 __all__ = [
@@ -42,4 +43,5 @@ __all__ = [
     "CuratedHoldingResponse",
     "CuratedInvestorDetailResponse",
     "CuratedSecurityResponse",
+    "SearchResultResponse",
 ]

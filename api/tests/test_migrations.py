@@ -36,6 +36,10 @@ EXPECTED_TABLES = {
     "identity_decisions",
     "curated_holding_snapshots",
     "curated_holding_events",
+    "company_chapters",
+    "evidence_chunks",
+    "retrieval_runs",
+    "retrieval_feedback",
 }
 
 

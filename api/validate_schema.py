@@ -68,6 +68,7 @@ def validate_schema(schema: Dict[str, Any]) -> bool:
         "/investors/{curated_investor_id}",
         "/review/identity",
         "/review/quarantine",
+        "/search",
     ]
     
     missing_endpoints = []
@@ -91,6 +92,7 @@ def validate_schema(schema: Dict[str, Any]) -> bool:
         "PerformanceResponse",
         "CuratedHoldingResponse",
         "CuratedInvestorDetailResponse",
+        "SearchResultResponse",
     ]
     
     missing_schemas = []

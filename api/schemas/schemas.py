@@ -206,3 +206,12 @@ class CuratedInvestorDetailResponse(BaseModel):
     aliases: List[CuratedAliasResponse]
     holdings: List[CuratedHoldingResponse]
     coverage: Dict[str, Any]
+
+
+class SearchResultResponse(BaseModel):
+    chunk_id: str
+    section_type: str
+    content: str
+    citation_urls: List[str]
+    source_snapshot_ids: List[str]
+    score: float

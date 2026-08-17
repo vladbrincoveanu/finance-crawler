@@ -39,6 +39,12 @@ from ValueInvestorsClub.ValueInvestorsClub.models.curated import (
     CuratedHoldingEvent,
     CuratedHoldingSnapshot,
 )
+from ValueInvestorsClub.ValueInvestorsClub.models.retrieval import (
+    CompanyChapter,
+    EvidenceChunk,
+    RetrievalFeedback,
+    RetrievalRun,
+)
 
 __all__ = [
     "Base",
@@ -70,4 +76,8 @@ __all__ = [
     "IdentityDecision",
     "CuratedHoldingSnapshot",
     "CuratedHoldingEvent",
+    "CompanyChapter",
+    "EvidenceChunk",
+    "RetrievalRun",
+    "RetrievalFeedback",
 ]

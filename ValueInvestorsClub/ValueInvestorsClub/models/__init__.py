@@ -41,6 +41,7 @@ from .identity import (
     SecurityAlias,
 )
 from .curated import CuratedHoldingEvent, CuratedHoldingSnapshot
+from .retrieval import CompanyChapter, EvidenceChunk, RetrievalFeedback, RetrievalRun
 
 __all__ = [
     "Base",
@@ -74,4 +75,8 @@ __all__ = [
     "IdentityDecision",
     "CuratedHoldingSnapshot",
     "CuratedHoldingEvent",
+    "CompanyChapter",
+    "EvidenceChunk",
+    "RetrievalRun",
+    "RetrievalFeedback",
 ]

@@ -11,6 +11,7 @@ from ValueInvestorsClub.ValueInvestorsClub.models import curated as _curated_mod
 from ValueInvestorsClub.ValueInvestorsClub.models import identity as _identity_models
 from ValueInvestorsClub.ValueInvestorsClub.models import ingestion as _ingestion_models
 from ValueInvestorsClub.ValueInvestorsClub.models import source as _source_models
+from ValueInvestorsClub.ValueInvestorsClub.models import retrieval as _retrieval_models
 
 config = context.config
 
