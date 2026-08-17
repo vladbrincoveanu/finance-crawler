@@ -76,6 +76,64 @@ services:
           memory: 2G
         reservations:
           memory: 1G
+
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    profiles: ["observability"]
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./data/observability/prometheus:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.retention.time=7d"
+    depends_on:
+      - api
+
+  loki:
+    image: grafana/loki:3.3.2
+    profiles: ["observability"]
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./observability/loki/loki.yml:/etc/loki/local-config.yaml:ro
+      - ./data/observability/loki:/loki
+    command: ["-config.file=/etc/loki/local-config.yaml"]
+
+  tempo:
+    image: grafana/tempo:2.6.1
+    profiles: ["observability"]
+    ports:
+      - "3200:3200"
+      - "4317:4317"
+      - "4318:4318"
+    volumes:
+      - ./observability/tempo/tempo.yml:/etc/tempo.yaml:ro
+      - ./data/observability/tempo:/var/tempo
+    command: ["-config.file=/etc/tempo.yaml"]
+
+  grafana:
+    image: grafana/grafana:11.4.0
+    profiles: ["observability"]
+    ports:
+      - "3001:3000"
+    volumes:
+      - ./data/observability/grafana:/var/lib/grafana
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      - prometheus
+      - loki
+      - tempo
+
+  uptime-kuma:
+    image: louislam/uptime-kuma:1
+    profiles: ["observability"]
+    ports:
+      - "3002:3001"
+    volumes:
+      - ./data/observability/uptime-kuma:/app/data
       
 # Using bind mounts instead of named volumes
 volumes:

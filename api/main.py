@@ -4,6 +4,7 @@ Creates the FastAPI application and includes all routes.
 """
 import uvicorn
 from fastapi import FastAPI
+from starlette.requests import Request
 
 from api.routes import (
     companies_router,
@@ -14,6 +15,9 @@ from api.routes import (
     review_router,
     users_router,
 )
+from api.telemetry import configure_telemetry, span
+
+configure_telemetry()
 
 # Create FastAPI app
 app = FastAPI(
@@ -21,6 +25,12 @@ app = FastAPI(
     description="Read-only API for accessing Value Investors Club data",
     version="1.0.0",
 )
+
+
+@app.middleware("http")
+async def trace_api_request(request: Request, call_next):
+    with span("api.request", {"http.method": request.method, "http.route": request.url.path}):
+        return await call_next(request)
 
 # Include all routers
 app.include_router(health_router)
