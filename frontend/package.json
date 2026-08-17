@@ -12,6 +12,7 @@
     "test:watch": "jest --config jest.config.js --watch",
     "test:coverage": "jest --config jest.config.js --coverage",
     "test:e2e": "cypress run",
+    "test:visual": "playwright test",
     "cypress:open": "cypress open",
     "validate-schema": "ts-node src/types/schema-validator.ts"
   },
@@ -29,6 +30,7 @@
     "recharts": "^2.10.3"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.1",
     "@testing-library/jest-dom": "^6.1.4",
     "@testing-library/react": "^14.3.1",
     "@testing-library/user-event": "^14.5.1",

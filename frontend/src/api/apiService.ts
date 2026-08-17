@@ -1,5 +1,15 @@
 import axios from 'axios';
-import { Idea, IdeaDetail, Company, User, Holding, ListParams, Performance } from '../types/api';
+import {
+  Company,
+  CuratedHolding,
+  Idea,
+  IdeaDetail,
+  IdentityCandidate,
+  ListParams,
+  Performance,
+  QuarantineRecord,
+  User,
+} from '../types/api';
 
 // Base API URL - Use environment variable with fallback
 const API_URL = '/api';
@@ -90,8 +100,34 @@ export const usersApi = {
 
 // Holdings API
 export const holdingsApi = {
-  getHoldings: async (params: ListParams = {}): Promise<Holding[]> => {
+  getHoldings: async (params: ListParams = {}): Promise<CuratedHolding[]> => {
     const response = await apiClient.get('/holdings/', { params });
+    return response.data;
+  },
+};
+
+const reviewHeaders = () => {
+  const token = window.localStorage.getItem('reviewAdminToken');
+  return token ? { Authorization: `Bearer ${token}` } : undefined;
+};
+
+export const reviewApi = {
+  getIdentityQueue: async (): Promise<IdentityCandidate[]> => {
+    const response = await apiClient.get('/review/identity', {
+      headers: reviewHeaders(),
+    });
+    return response.data;
+  },
+  getQuarantineQueue: async (): Promise<QuarantineRecord[]> => {
+    const response = await apiClient.get('/review/quarantine', {
+      headers: reviewHeaders(),
+    });
+    return response.data;
+  },
+  reprocessQuarantine: async (id: string): Promise<QuarantineRecord> => {
+    const response = await apiClient.post(`/review/quarantine/${id}/reprocess`, undefined, {
+      headers: reviewHeaders(),
+    });
     return response.data;
   },
 };

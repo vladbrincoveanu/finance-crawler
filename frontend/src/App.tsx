@@ -15,6 +15,9 @@ import ArticleDetailPage from './pages/ArticleDetailPage';
 import CompaniesPage from './pages/CompaniesPage';
 import UsersPage from './pages/UsersPage';
 import HoldingsPage from './pages/HoldingsPage';
+import SourceHoldingsPage from './pages/SourceHoldingsPage';
+import IdentityReviewPage from './pages/IdentityReviewPage';
+import QuarantineReviewPage from './pages/QuarantineReviewPage';
 import AboutPage from './pages/AboutPage';
 
 function App() {
@@ -82,6 +85,10 @@ function App() {
         <Route path="companies" element={<CompaniesPage />} />
         <Route path="users" element={<UsersPage />} />
         <Route path="holdings" element={<HoldingsPage />} />
+        <Route path="holdings/dataroma" element={<SourceHoldingsPage source="dataroma" />} />
+        <Route path="holdings/hedgefollow" element={<SourceHoldingsPage source="hedgefollow" />} />
+        <Route path="review/identity" element={<IdentityReviewPage />} />
+        <Route path="review/quarantine" element={<QuarantineReviewPage />} />
         <Route path="about" element={<AboutPage />} />
       </Route>
     </Routes>

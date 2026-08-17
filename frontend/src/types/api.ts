@@ -29,6 +29,49 @@ export interface Holding {
   activity: string;
 }
 
+export interface CuratedHolding {
+  source: 'dataroma' | 'hedgefollow' | string;
+  investor_id: string;
+  investor_name: string;
+  portfolio_manager_name: string | null;
+  company_id: string;
+  company_name: string;
+  security_id: string;
+  ticker: string;
+  period: string;
+  shares: number | null;
+  value_usd: number | null;
+  pct_portfolio: number | null;
+  source_activity: string | null;
+  completeness: string;
+  source_url: string;
+}
+
+export interface IdentityCandidate {
+  id: string;
+  entity_type: string;
+  source_record_id: string;
+  candidate_entity_id: string | null;
+  deterministic_score: number | null;
+  model_score: number | null;
+  evidence_json: Record<string, unknown> | null;
+  status: string;
+}
+
+export interface QuarantineRecord {
+  id: string;
+  run_id: string;
+  source: string;
+  record_type: string;
+  source_record_id: string;
+  reason_code: string;
+  reason_detail: string | null;
+  raw_payload: Record<string, unknown> | null;
+  review_status: string;
+  created_at: string;
+  reviewed_at: string | null;
+}
+
 export interface Description {
   description: string;
 }
@@ -90,6 +133,11 @@ export interface ListParams {
   min_performance?: number;
   max_performance?: number;
   performance_period?: string;
+  source?: string;
+  investor_id?: string;
+  security_id?: string;
+  period_start?: string;
+  period_end?: string;
   sort_by?: string;
   sort_order?: string;
 }

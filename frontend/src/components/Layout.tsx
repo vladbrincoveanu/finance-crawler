@@ -9,7 +9,6 @@ import {
   Stack,
   Collapse,
   Link,
-  useColorModeValue,
   useBreakpointValue,
   useDisclosure,
   Container,
@@ -20,9 +19,9 @@ const Layout: React.FC = () => {
   const { isOpen, onToggle } = useDisclosure();
 
   // Define common theme values
-  const bgColor = useColorModeValue('white', 'gray.800');
-  const textColor = useColorModeValue('gray.600', 'white');
-  const borderColor = useColorModeValue('gray.200', 'gray.700');
+  const bgColor = 'rgba(7, 11, 20, 0.88)';
+  const textColor = 'whiteAlpha.800';
+  const borderColor = 'whiteAlpha.200';
 
   return (
     <Box minH="100vh">
@@ -35,6 +34,7 @@ const Layout: React.FC = () => {
         position="sticky"
         top={0}
         zIndex={10}
+        backdropFilter="blur(18px)"
       >
         <Flex
           bg={bgColor}
@@ -43,7 +43,7 @@ const Layout: React.FC = () => {
           py={{ base: 2 }}
           px={{ base: 4 }}
           align="center"
-          maxW="container.xl"
+          maxW="1400px"
           mx="auto"
         >
           <Flex
@@ -62,13 +62,13 @@ const Layout: React.FC = () => {
             <Text
               textAlign={useBreakpointValue({ base: 'center', md: 'left' })}
               fontFamily="heading"
-              color={useColorModeValue('gray.800', 'white')}
+              color="white"
               fontWeight="bold"
               fontSize="xl"
               as={RouterLink}
               to="/"
             >
-              VIC Analytics Dashboard
+              VIC / FIELD NOTES
             </Text>
 
             <Flex display={{ base: 'none', md: 'flex' }} ml={10}>
@@ -99,14 +99,14 @@ const Layout: React.FC = () => {
         </Collapse>
       </Box>
 
-      <Container maxW="container.xl" pt={8} pb={16}>
+      <Container maxW="1400px" pt={{ base: 8, md: 12 }} pb={20}>
         <Outlet />
       </Container>
 
       <Box
         as="footer"
-        bg={useColorModeValue('gray.50', 'gray.900')}
-        color={useColorModeValue('gray.700', 'gray.200')}
+        bg="rgba(255,255,255,0.025)"
+        color="whiteAlpha.600"
         mt="auto"
         py={6}
         borderTop={1}
@@ -115,7 +115,7 @@ const Layout: React.FC = () => {
       >
         <Container
           as={Stack}
-          maxW="container.xl"
+          maxW="1400px"
           py={4}
           direction={{ base: 'column', md: 'row' }}
           spacing={4}
@@ -130,8 +130,8 @@ const Layout: React.FC = () => {
 };
 
 const DesktopNav = () => {
-  const linkColor = useColorModeValue('gray.600', 'gray.200');
-  const linkHoverColor = useColorModeValue('gray.800', 'white');
+  const linkColor = 'whiteAlpha.700';
+  const linkHoverColor = 'amber.200';
 
   return (
     <Stack direction="row" spacing={4}>
@@ -160,7 +160,7 @@ const DesktopNav = () => {
 const MobileNav = () => {
   return (
     <Stack
-      bg={useColorModeValue('white', 'gray.800')}
+      bg="ink.900"
       p={4}
       display={{ md: 'none' }}
     >
@@ -186,7 +186,7 @@ const MobileNavItem = ({ label, href }: NavItem) => {
       >
         <Text
           fontWeight={600}
-          color={useColorModeValue('gray.600', 'gray.200')}
+          color="whiteAlpha.800"
         >
           {label}
         </Text>
@@ -220,6 +220,14 @@ const NAV_ITEMS: Array<NavItem> = [
   {
     label: 'Holdings',
     href: '/holdings',
+  },
+  {
+    label: 'Dataroma',
+    href: '/holdings/dataroma',
+  },
+  {
+    label: 'HedgeFollow',
+    href: '/holdings/hedgefollow',
   },
 ];
 

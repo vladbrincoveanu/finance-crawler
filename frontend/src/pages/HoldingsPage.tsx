@@ -1,65 +1,41 @@
 import React from 'react';
-import {
-  Box,
-  Heading,
-  Table,
-  Thead,
-  Tbody,
-  Tr,
-  Th,
-  Td,
-  Spinner,
-  Alert,
-  AlertIcon,
-} from '@chakra-ui/react';
-import { useHoldings } from '../hooks/useHoldings';
+import { Link as RouterLink } from 'react-router-dom';
+import { ArrowForwardIcon } from '@chakra-ui/icons';
+import { Box, Button, Flex, Heading, HStack, SimpleGrid, Text } from '@chakra-ui/react';
+import CuratedHoldingsTable from '../components/CuratedHoldingsTable';
+import { useCuratedHoldings } from '../hooks/useCuratedHoldings';
 
 const HoldingsPage: React.FC = () => {
-  const { data: holdings, isLoading, isError, error } = useHoldings({ skip: 0, limit: 100 });
+  const query = useCuratedHoldings({ skip: 0, limit: 100 });
+  const holdings = query.data ?? [];
+  const sourceCount = new Set(holdings.map((row) => row.source)).size;
 
   return (
-    <Box p={5}>
-      <Heading mb={5}>Holdings</Heading>
+    <Box>
+      <Flex justify="space-between" align={{ base: 'flex-start', md: 'center' }} direction={{ base: 'column', md: 'row' }} gap={5} mb={8}>
+        <Box>
+          <Text color="amber.200" fontSize="xs" letterSpacing="0.2em" textTransform="uppercase">Ownership intelligence / live ledger</Text>
+          <Heading mt={3} fontSize={{ base: '3xl', md: '5xl' }} letterSpacing="-0.05em" color="white">Curated holdings</Heading>
+          <Text mt={3} color="whiteAlpha.700" maxW="650px">A source-aware view of reported ownership. Same security, different source facts: never merged, never silently inferred.</Text>
+        </Box>
+        <HStack spacing={3}>
+          <Button as={RouterLink} to="/holdings/dataroma" variant="outline" borderColor="orange.300" color="orange.200" rightIcon={<ArrowForwardIcon />} _hover={{ bg: 'orange.300', color: 'gray.900' }}>Dataroma</Button>
+          <Button as={RouterLink} to="/holdings/hedgefollow" variant="outline" borderColor="purple.300" color="purple.200" rightIcon={<ArrowForwardIcon />} _hover={{ bg: 'purple.300', color: 'gray.900' }}>HedgeFollow</Button>
+        </HStack>
+      </Flex>
 
-      {isLoading && <Spinner data-testid="holdings-loading" />}
+      <SimpleGrid columns={{ base: 1, sm: 2 }} spacing={4} mb={8}>
+        <Box border="1px solid" borderColor="whiteAlpha.200" borderRadius="18px" bg="whiteAlpha.50" p={5}>
+          <Text color="whiteAlpha.500" fontSize="xs" textTransform="uppercase" letterSpacing="0.14em">Curated observations</Text>
+          <Text mt={2} color="white" fontSize="3xl" fontWeight="700">{query.isLoading ? '—' : holdings.length}</Text>
+        </Box>
+        <Box border="1px solid" borderColor="whiteAlpha.200" borderRadius="18px" bg="whiteAlpha.50" p={5}>
+          <Text color="whiteAlpha.500" fontSize="xs" textTransform="uppercase" letterSpacing="0.14em">Active sources</Text>
+          <Text mt={2} color="white" fontSize="3xl" fontWeight="700">{query.isLoading ? '—' : sourceCount}</Text>
+        </Box>
+      </SimpleGrid>
 
-      {isError && (
-        <Alert status="error" data-testid="holdings-error">
-          <AlertIcon />
-          {error instanceof Error ? error.message : 'Failed to load holdings'}
-        </Alert>
-      )}
-
-      {!isLoading && !isError && (
-        <Table data-testid="holdings-table">
-          <Thead>
-            <Tr>
-              <Th>Investor</Th>
-              <Th>Ticker</Th>
-              <Th>Company</Th>
-              <Th>Quarter</Th>
-              <Th isNumeric>Shares</Th>
-              <Th isNumeric>Value (USD)</Th>
-              <Th isNumeric>% Portfolio</Th>
-              <Th>Activity</Th>
-            </Tr>
-          </Thead>
-          <Tbody>
-            {(holdings ?? []).map((h, i) => (
-              <Tr key={`${h.investor_name}-${h.ticker}-${h.quarter_date}-${i}`}>
-                <Td>{h.investor_name}</Td>
-                <Td>{h.ticker}</Td>
-                <Td>{h.company_name}</Td>
-                <Td>{h.quarter_date}</Td>
-                <Td isNumeric>{h.shares.toLocaleString()}</Td>
-                <Td isNumeric>{h.value_usd.toLocaleString()}</Td>
-                <Td isNumeric>{h.pct_portfolio}</Td>
-                <Td>{h.activity}</Td>
-              </Tr>
-            ))}
-          </Tbody>
-        </Table>
-      )}
+      <CuratedHoldingsTable holdings={holdings} isLoading={query.isLoading} isError={query.isError} error={query.error} />
     </Box>
   );
 };

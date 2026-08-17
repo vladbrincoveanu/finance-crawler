@@ -2,10 +2,13 @@ import { useQuery, UseQueryOptions } from 'react-query';
 import { holdingsApi } from '../api/apiService';
 import { CuratedHolding, ListParams } from '../types/api';
 
-export function useHoldings(params: ListParams = {}, options?: UseQueryOptions<CuratedHolding[]>) {
+export function useCuratedHoldings(
+  params: ListParams = {},
+  options?: UseQueryOptions<CuratedHolding[]>,
+) {
   return useQuery<CuratedHolding[]>(
-    ['holdings', params],
+    ['curated-holdings', params],
     () => holdingsApi.getHoldings(params),
-    options
+    options,
   );
 }

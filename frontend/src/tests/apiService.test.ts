@@ -2,8 +2,8 @@
  * Tests for the API service layer
  */
 import axios from 'axios';
-import { ideasApi, companiesApi, usersApi } from '../api/apiService';
-import { Idea, IdeaDetail, Company, User, ListParams } from '../types/api';
+import { ideasApi, companiesApi, usersApi, holdingsApi } from '../api/apiService';
+import { CuratedHolding, Idea, IdeaDetail, Company, User, ListParams } from '../types/api';
 
 // Mock axios
 jest.mock('axios');
@@ -207,6 +207,24 @@ describe('usersApi', () => {
     
     // Verify
     expect(mockedAxios.get).toHaveBeenCalledWith('/users/', { params });
+    expect(result).toEqual(mockData);
+  });
+});
+
+describe('holdingsApi', () => {
+  beforeEach(() => {
+    jest.resetAllMocks();
+    mockedAxios.create.mockReturnValue(mockedAxios);
+  });
+
+  test('getHoldings requests the curated source filters', async () => {
+    const mockData: CuratedHolding[] = [];
+    const params: ListParams = { source: 'dataroma', limit: 25, skip: 0 };
+    mockedAxios.get.mockResolvedValueOnce({ data: mockData });
+
+    const result = await holdingsApi.getHoldings(params);
+
+    expect(mockedAxios.get).toHaveBeenCalledWith('/holdings/', { params });
     expect(result).toEqual(mockData);
   });
 });

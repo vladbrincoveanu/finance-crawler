@@ -4,6 +4,7 @@ import App from './App.tsx';
 import { ChakraProvider } from '@chakra-ui/react';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { BrowserRouter } from 'react-router-dom';
+import theme from './theme';
 
 // Create a client for React Query
 const queryClient = new QueryClient({
@@ -29,7 +30,7 @@ ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
     <BrowserRouter>
       <QueryClientProvider client={queryClient}>
-        <ChakraProvider>
+        <ChakraProvider theme={theme}>
           <App />
         </ChakraProvider>
       </QueryClientProvider>
