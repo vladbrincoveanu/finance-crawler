@@ -35,6 +35,17 @@ def test_parse_home_respects_investor_limit(monkeypatch):
     assert len(requests) == 2
 
 
+def test_parse_home_respects_requested_investor_slug():
+    spider = DataromaSpider()
+    spider.investor_slug = "BRK"
+    response = _response("home.html", "https://www.dataroma.com/m/home.php")
+
+    requests = list(spider.parse_home(response))
+
+    assert len(requests) == 1
+    assert requests[0].meta["investor_slug"] == "BRK"
+
+
 def test_parse_holdings_yields_one_history_request_per_stock():
     spider = DataromaSpider()
     holdings_url = "https://www.dataroma.com/m/holdings.php?m=BRK"

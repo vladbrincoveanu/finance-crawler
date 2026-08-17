@@ -1,6 +1,7 @@
 import os
 import re
 from datetime import date
+from hashlib import sha256
 
 import scrapy
 
@@ -52,6 +53,7 @@ class DataromaSpider(scrapy.Spider):
 
     def parse_home(self, response):
         limit = int(os.getenv("DATAROMA_INVESTOR_LIMIT", "0"))
+        requested_slug = (getattr(self, "investor_slug", "") or "").strip()
         links = response.xpath("//li/a[contains(@href, 'holdings.php?m=')]")
         if limit > 0:
             links = links[:limit]
@@ -59,7 +61,7 @@ class DataromaSpider(scrapy.Spider):
             href = link.xpath("./@href").get() or ""
             slug = href.split("m=", 1)[-1]
             name = (link.xpath("./text()").get() or "").strip()
-            if not slug or not name:
+            if not slug or not name or (requested_slug and slug != requested_slug):
                 continue
             yield scrapy.Request(
                 response.urljoin(href),
@@ -88,10 +90,12 @@ class DataromaSpider(scrapy.Spider):
                     "investor_profile_url": response.meta["investor_profile_url"],
                     "ticker": ticker.strip(),
                     "company_name": company_name.lstrip("- ").strip(),
+                    "source_url": response.urljoin(hist_href),
                 },
             )
 
     def parse_stock_history(self, response):
+        response_document_hash = sha256(response.body).hexdigest()
         for row in response.xpath("//table[@id='grid']/tbody/tr"):
             cells = row.xpath("./td")
             if len(cells) < 6:
@@ -104,6 +108,9 @@ class DataromaSpider(scrapy.Spider):
             pct = float((cells[2].xpath("string()").get() or "0").strip() or 0)
             activity = _parse_activity(cells[3].xpath("string()").get())
             price = _parse_money(cells[5].xpath("string()").get())
+            source_observation_key = (
+                f"dataroma:{response.meta['investor_slug']}:{response.meta['ticker']}:{quarter_date}"
+            )
 
             yield HoldingItem(
                 investor_name=response.meta["investor_name"],
@@ -117,4 +124,16 @@ class DataromaSpider(scrapy.Spider):
                 value_usd=shares * price,
                 pct_portfolio=pct,
                 activity=activity,
+                source_url=response.url,
+                source_observation_key=source_observation_key,
+                document_hash=response_document_hash,
+                exchange=None,
+                share_class=None,
+                portfolio_manager_name=None,
+                raw_payload={
+                    "period_text": cells[0].xpath("string()").get(),
+                    "shares_text": shares_text,
+                    "activity_text": cells[3].xpath("string()").get(),
+                    "price_text": cells[5].xpath("string()").get(),
+                },
             )

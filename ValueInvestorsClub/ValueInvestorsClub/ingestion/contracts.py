@@ -19,6 +19,12 @@ class SourcePage(BaseModel):
     fetched_at: datetime
     parser_version: str
 
+    @property
+    def content_hash(self) -> str:
+        import hashlib
+
+        return hashlib.sha256(self.body).hexdigest()
+
 
 class SourceHoldingObservation(BaseModel):
     model_config = ConfigDict(extra="forbid")

@@ -14,6 +14,14 @@ def test_holding_item_has_expected_fields():
         value_usd=65950296000.0,
         pct_portfolio=22.04,
         activity="hold",
+        source_url="https://www.dataroma.com/m/hist/hist.php?f=BRK&s=AAPL",
+        source_observation_key="dataroma:BRK:AAPL:2026-06-30",
+        document_hash="a" * 64,
+        exchange="NASDAQ",
+        share_class="A",
+        portfolio_manager_name=None,
+        raw_payload={"source": "fixture"},
     )
     assert item["ticker"] == "AAPL"
     assert item["activity"] == "hold"
+    assert item["source_observation_key"] == "dataroma:BRK:AAPL:2026-06-30"

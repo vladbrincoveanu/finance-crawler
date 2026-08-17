@@ -99,7 +99,7 @@ class HoldingPipeline:
         slug = item.get("investor_slug")
         ticker = item.get("ticker")
         quarter_date = item.get("quarter_date")
-        source_url = item.get("investor_profile_url") or "https://example.invalid/source"
+        source_url = item.get("source_url") or item.get("investor_profile_url") or "https://example.invalid/source"
         serialized = json.dumps(payload, default=str, sort_keys=True).encode("utf-8")
         return {
             "source": source,
@@ -114,7 +114,7 @@ class HoldingPipeline:
             "pct_portfolio": item.get("pct_portfolio"),
             "source_activity": item.get("activity"),
             "source_url": source_url,
-            "source_observation_key": f"{source}:{slug}:{ticker}:{quarter_date}",
-            "document_hash": hashlib.sha256(serialized).hexdigest(),
-            "raw_payload": payload,
+            "source_observation_key": item.get("source_observation_key") or f"{source}:{slug}:{ticker}:{quarter_date}",
+            "document_hash": item.get("document_hash") or hashlib.sha256(serialized).hexdigest(),
+            "raw_payload": item.get("raw_payload") or payload,
         }
