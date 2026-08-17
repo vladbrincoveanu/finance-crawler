@@ -1,0 +1,23 @@
+{
+  "requestId": "fund_history",
+  "rows": [
+    {
+      "symbol": "AAPL",
+      "stockName": "Apple Inc.",
+      "adjustedShares": "118",
+      "value": "65950296000",
+      "PP": "22.04",
+      "quarter": "2026-03-31",
+      "activity": "Buy"
+    },
+    {
+      "symbol": "KO",
+      "stockName": "Coca-Cola Co.",
+      "adjustedShares": "400",
+      "value": "30200000000",
+      "PP": "10.12",
+      "quarter": "2025-12-31",
+      "activity": "Reduce"
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+<!doctype html>
+<html>
+  <body>
+    <table class="fundSummary">
+      <tr><th>Fund</th><td>Berkshire Hathaway</td></tr>
+      <tr><th>Manager</th><td>Warren Buffett</td></tr>
+    </table>
+    <select data-id="quarter" name="quarter">
+      <option value="latest">Latest</option>
+      <option value="2026-03-31">2026 Q1</option>
+    </select>
+    <div id="tabTopHolders"><div id="topHolders"></div></div>
+    <table id="fund_holdings_equities"></table>
+    <table id="fund_holdings_options"></table>
+    <div id="tabLargestTrades"><div id="dgBuyers"></div><div id="dgSellers"></div></div>
+    <div id="tabLatestTrades"></div>
+    <script>
+      const requestId = 'fund_holdings';
+      const fields = ['symbol', 'stockName', 'PP', 'adjustedShares', 'value', 'trade_value', 'percentChange', 'quarter'];
+    </script>
+  </body>
+</html>

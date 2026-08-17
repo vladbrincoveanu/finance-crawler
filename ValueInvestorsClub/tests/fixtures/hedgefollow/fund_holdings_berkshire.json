@@ -1,0 +1,37 @@
+{
+  "requestId": "fund_holdings",
+  "fields": ["symbol", "stockName", "PP", "adjustedShares", "value", "trade_value", "percentChange", "quarter"],
+  "rows": [
+    {
+      "symbol": "AAPL",
+      "stockName": "Apple Inc.",
+      "PP": "22.04",
+      "adjustedShares": "118",
+      "value": "65950296000",
+      "trade_value": "0",
+      "percentChange": "0",
+      "quarter": "2026-03-31",
+      "instrumentType": "common_stock"
+    },
+    {
+      "symbol": "KO",
+      "stockName": "Coca-Cola Co.",
+      "PP": "10.12",
+      "adjustedShares": "400",
+      "value": "30200000000",
+      "trade_value": "100000000",
+      "percentChange": "1.2",
+      "quarter": "2026-03-31",
+      "instrumentType": "common_stock"
+    },
+    {
+      "symbol": "AAPL260621C00200000",
+      "stockName": "Apple call option",
+      "PP": "0.01",
+      "adjustedShares": "10",
+      "value": "100000",
+      "quarter": "2026-03-31",
+      "instrumentType": "option"
+    }
+  ]
+}
