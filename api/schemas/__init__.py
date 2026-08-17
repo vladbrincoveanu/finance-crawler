@@ -15,6 +15,12 @@ from api.schemas.schemas import (
     IdentityDecisionRequest,
     IdentityDecisionResponse,
     QuarantineResponse,
+    CuratedAliasResponse,
+    CuratedCompanyDetailResponse,
+    CuratedEventResponse,
+    CuratedHoldingResponse,
+    CuratedInvestorDetailResponse,
+    CuratedSecurityResponse,
 )
 
 __all__ = [
@@ -30,4 +36,10 @@ __all__ = [
     "IdentityDecisionRequest",
     "IdentityDecisionResponse",
     "QuarantineResponse",
+    "CuratedAliasResponse",
+    "CuratedCompanyDetailResponse",
+    "CuratedEventResponse",
+    "CuratedHoldingResponse",
+    "CuratedInvestorDetailResponse",
+    "CuratedSecurityResponse",
 ]

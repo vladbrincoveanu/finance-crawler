@@ -148,3 +148,61 @@ class QuarantineResponse(BaseModel):
     reviewed_at: Optional[datetime] = None
 
     model_config = {"from_attributes": True}
+
+
+class CuratedHoldingResponse(BaseModel):
+    source: str
+    investor_id: str
+    investor_name: str
+    portfolio_manager_name: Optional[str] = None
+    company_id: str
+    company_name: str
+    security_id: str
+    ticker: str
+    period: date
+    shares: Optional[int] = None
+    value_usd: Optional[float] = None
+    pct_portfolio: Optional[float] = None
+    source_activity: Optional[str] = None
+    completeness: str
+    source_url: str
+
+
+class CuratedSecurityResponse(BaseModel):
+    id: str
+    ticker: str
+    exchange: Optional[str] = None
+    share_class: Optional[str] = None
+
+
+class CuratedEventResponse(BaseModel):
+    period: date
+    event_type: str
+    confidence: Optional[float] = None
+    evidence_snapshot_ids: List[str]
+
+
+class CuratedCompanyDetailResponse(BaseModel):
+    id: str
+    display_name: str
+    normalized_name: str
+    securities: List[CuratedSecurityResponse]
+    holdings: List[CuratedHoldingResponse]
+    events: List[CuratedEventResponse]
+    source_links: List[str]
+
+
+class CuratedAliasResponse(BaseModel):
+    source: str
+    source_key: str
+
+
+class CuratedInvestorDetailResponse(BaseModel):
+    id: str
+    display_name: str
+    normalized_name: str
+    status: str
+    portfolio_managers: List[str]
+    aliases: List[CuratedAliasResponse]
+    holdings: List[CuratedHoldingResponse]
+    coverage: Dict[str, Any]

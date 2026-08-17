@@ -8,6 +8,7 @@ from api.routes.companies import router as companies_router
 from api.routes.users import router as users_router
 from api.routes.holdings import router as holdings_router
 from api.routes.review import router as review_router
+from api.routes.investors import router as investors_router
 
 __all__ = [
     "health_router",
@@ -16,4 +17,5 @@ __all__ = [
     "users_router",
     "holdings_router",
     "review_router",
+    "investors_router",
 ]

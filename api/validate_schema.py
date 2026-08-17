@@ -63,6 +63,11 @@ def validate_schema(schema: Dict[str, Any]) -> bool:
         "/ideas/{idea_id}",
         "/companies/",
         "/users/",
+        "/holdings/",
+        "/companies/{curated_company_id}",
+        "/investors/{curated_investor_id}",
+        "/review/identity",
+        "/review/quarantine",
     ]
     
     missing_endpoints = []
@@ -84,6 +89,8 @@ def validate_schema(schema: Dict[str, Any]) -> bool:
         "CompanyResponse",
         "UserResponse",
         "PerformanceResponse",
+        "CuratedHoldingResponse",
+        "CuratedInvestorDetailResponse",
     ]
     
     missing_schemas = []
@@ -115,6 +122,32 @@ def validate_schema(schema: Dict[str, Any]) -> bool:
     
     if missing_idea_fields:
         print(f"Missing required fields in IdeaResponse: {', '.join(missing_idea_fields)}")
+        return False
+
+    curated_holding = schemas.get("CuratedHoldingResponse", {})
+    curated_holding_properties = curated_holding.get("properties", {})
+    required_curated_holding_fields = [
+        "source",
+        "investor_id",
+        "investor_name",
+        "company_id",
+        "company_name",
+        "security_id",
+        "ticker",
+        "period",
+        "completeness",
+        "source_url",
+    ]
+    missing_curated_holding_fields = [
+        field
+        for field in required_curated_holding_fields
+        if field not in curated_holding_properties
+    ]
+    if missing_curated_holding_fields:
+        print(
+            "Missing required fields in CuratedHoldingResponse: "
+            + ", ".join(missing_curated_holding_fields)
+        )
         return False
     
     return True
@@ -156,12 +189,8 @@ def main() -> int:
         print("Schema validation successful!")
         return 0
     else:
-        if os.environ.get("CI", "false").lower() == "true":
-            print("Schema validation failed, but running in CI/CD environment. Continuing...")
-            return 0
-        else:
-            print("Schema validation failed!")
-            return 1
+        print("Schema validation failed!")
+        return 1
 
 if __name__ == "__main__":
     sys.exit(main())

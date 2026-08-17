@@ -9,6 +9,7 @@ from api.routes import (
     companies_router,
     health_router,
     holdings_router,
+    investors_router,
     ideas_router,
     review_router,
     users_router,
@@ -28,6 +29,7 @@ app.include_router(companies_router)
 app.include_router(users_router)
 app.include_router(holdings_router)
 app.include_router(review_router)
+app.include_router(investors_router)
 
 
 if __name__ == "__main__":
