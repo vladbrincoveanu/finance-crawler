@@ -143,4 +143,16 @@ describe('IdeaCard Component', () => {
     const companyId = screen.getByText(sampleIdea.company_id);
     expect(companyId).toBeInTheDocument();
   });
+
+  test('renders selected performance in a dense accessible row', async () => {
+    render(<IdeaCard idea={sampleIdea} performancePeriod="one_month_perf" />, {
+      wrapper: createWrapper(),
+    });
+
+    const row = await screen.findByTestId('idea-card');
+
+    expect(row).toHaveAttribute('role', 'link');
+    expect(row).toHaveTextContent('1M');
+    expect(row).toHaveTextContent('+3.2%');
+  });
 });

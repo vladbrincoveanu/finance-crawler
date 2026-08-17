@@ -157,4 +157,15 @@ describe('IdeasPage', () => {
       }),
     ));
   });
+
+  test('load more advances by one page', async () => {
+    const user = userEvent.setup();
+    renderPage();
+
+    await user.click(screen.getByTestId('load-more-button'));
+
+    await waitFor(() => expect(mockUseIdeas).toHaveBeenLastCalledWith(
+      expect.objectContaining({ skip: 20, limit: 20 }),
+    ));
+  });
 });

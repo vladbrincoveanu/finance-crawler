@@ -328,6 +328,7 @@ const IdeasPage: React.FC<IdeasPageProps> = ({
                 key={idea.id}
                 idea={idea}
                 linkBasePath={linkBasePath}
+                performancePeriod={filters.performance_period}
               />
             ))}
           </Box>
