@@ -1,171 +1,167 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
-  Box,
-  SimpleGrid,
-  Heading,
-  Text,
-  Button,
-  Flex,
-  Select,
-  Input,
-  Stack,
-  Spinner,
   Alert,
+  AlertDescription,
   AlertIcon,
   AlertTitle,
-  AlertDescription,
+  Badge,
+  Box,
+  Button,
+  Flex,
+  Heading,
+  Input,
+  InputGroup,
+  InputLeftElement,
+  Select,
+  Spinner,
+  Tag,
+  TagCloseButton,
+  TagLabel,
+  Text,
+  useDisclosure,
 } from '@chakra-ui/react';
+import { SearchIcon } from '@chakra-ui/icons';
+import { useQuery } from 'react-query';
 import { useIdeas } from '../hooks/useIdeas';
 import IdeaCard from '../components/IdeaCard';
-import { ListParams, Idea } from '../types/api';
+import IdeasFilterDrawer from '../components/IdeasFilterDrawer';
+import { companiesApi, usersApi } from '../api/apiService';
+import { Idea, ListParams } from '../types/api';
 import { useLocation, useNavigate } from 'react-router-dom';
+import {
+  DEFAULT_FILTERS,
+  filtersToSortSelection,
+  getActiveFilterLabels,
+  getInitialFilters,
+  PAGE_SIZE,
+  removeFilter,
+  SortSelection,
+  sortSelectionToFilters,
+  toQueryString,
+} from './ideasFilters';
 
-const IdeasPage: React.FC = () => {
+interface IdeasPageProps {
+  title?: string;
+  linkBasePath?: string;
+}
+
+interface SearchSuggestion {
+  type: 'company' | 'user';
+  value: string;
+  label: string;
+}
+
+const IdeasPage: React.FC<IdeasPageProps> = ({
+  title = 'Investment Ideas',
+  linkBasePath = '/ideas',
+}) => {
   const location = useLocation();
   const navigate = useNavigate();
-  
-  // Get query parameters from URL
-  const getInitialFilters = (): ListParams => {
-    const searchParams = new URLSearchParams(location.search);
-    const initialFilters: ListParams = {
-      skip: 0,
-      limit: 20,
-    };
-    
-    // Add filters from URL parameters
-    if (searchParams.has('company_id')) {
-      initialFilters.company_id = searchParams.get('company_id') || undefined;
-    }
-    
-    if (searchParams.has('user_id')) {
-      initialFilters.user_id = searchParams.get('user_id') || undefined;
-    }
-    
-    if (searchParams.has('is_short')) {
-      initialFilters.is_short = searchParams.get('is_short') === 'true';
-    }
-    
-    if (searchParams.has('is_contest_winner')) {
-      initialFilters.is_contest_winner = searchParams.get('is_contest_winner') === 'true';
-    }
-    
-    // Add performance filters from URL parameters
-    if (searchParams.has('has_performance')) {
-      initialFilters.has_performance = searchParams.get('has_performance') === 'true';
-    }
-    
-    if (searchParams.has('min_performance')) {
-      const minPerf = parseFloat(searchParams.get('min_performance') || '');
-      if (!isNaN(minPerf)) {
-        initialFilters.min_performance = minPerf;
-      }
-    }
-    
-    if (searchParams.has('max_performance')) {
-      const maxPerf = parseFloat(searchParams.get('max_performance') || '');
-      if (!isNaN(maxPerf)) {
-        initialFilters.max_performance = maxPerf;
-      }
-    }
-    
-    if (searchParams.has('performance_period')) {
-      initialFilters.performance_period = searchParams.get('performance_period') || undefined;
-    }
-    
-    if (searchParams.has('sort_by')) {
-      initialFilters.sort_by = searchParams.get('sort_by') || undefined;
-    }
-    
-    if (searchParams.has('sort_order')) {
-      initialFilters.sort_order = searchParams.get('sort_order') || undefined;
-    }
-    
-    return initialFilters;
-  };
-
-  const [filters, setFilters] = useState<ListParams>(getInitialFilters());
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [filters, setFilters] = useState<ListParams>(() => getInitialFilters(location.search));
   const [searchQuery, setSearchQuery] = useState('');
-  
-  // Update URL when filters change
+  const [searchOpen, setSearchOpen] = useState(false);
+
   useEffect(() => {
-    const searchParams = new URLSearchParams();
-    
-    // Add all non-empty filters to URL
-    Object.entries(filters).forEach(([key, value]) => {
-      if (value !== undefined && value !== null && key !== 'skip' && key !== 'limit') {
-        searchParams.set(key, String(value));
-      }
-    });
-    
-    // Update URL without reloading the page
-    const newSearch = searchParams.toString();
-    if (newSearch) {
-      navigate(`?${newSearch}`, { replace: true });
-    } else if (location.search) {
-      navigate('', { replace: true });
+    const nextSearch = toQueryString(filters);
+    const currentSearch = location.search.replace(/^\?/, '');
+
+    if (nextSearch !== currentSearch) {
+      navigate(nextSearch ? `?${nextSearch}` : '', { replace: true });
     }
   }, [filters, navigate, location.search]);
-  
-  // Keep track of all loaded ideas and seen IDs to prevent duplicates
-  const [allIdeas, setAllIdeas] = React.useState<Idea[]>([]);
-  const seenIdeaIds = React.useRef(new Set<string>());
-  
-  // Use a ref to track if we need to append or replace ideas
-  const isNewFilter = React.useRef(true);
-  
-  // Get ideas from the API
+
+  const normalizedSearch = searchQuery.trim();
+  const { data: companyMatches = [] } = useQuery(
+    ['ideas-company-search', normalizedSearch],
+    () => companiesApi.getCompanies({ search: normalizedSearch, limit: 5 }),
+    {
+      enabled: normalizedSearch.length >= 2,
+      staleTime: 30000,
+    },
+  );
+  const { data: userMatches = [] } = useQuery(
+    ['ideas-user-search', normalizedSearch],
+    () => usersApi.getUsers({ search: normalizedSearch, limit: 5 }),
+    {
+      enabled: normalizedSearch.length >= 2,
+      staleTime: 30000,
+    },
+  );
+
+  const suggestions: SearchSuggestion[] = [
+    ...companyMatches.map(company => ({
+      type: 'company' as const,
+      value: company.ticker,
+      label: `${company.company_name} (${company.ticker})`,
+    })),
+    ...userMatches.map(user => ({
+      type: 'user' as const,
+      value: user.user_link,
+      label: `@${user.username}`,
+    })),
+  ];
+
+  const [allIdeas, setAllIdeas] = useState<Idea[]>([]);
+  const seenIdeaIds = useRef(new Set<string>());
+  const isNewFilter = useRef(true);
+
   const { data: ideas, isLoading, isError, error } = useIdeas(filters);
-  
-  // When new ideas load, either append them or replace the current list
-  React.useEffect(() => {
+
+  useEffect(() => {
     if (ideas) {
       if (filters.skip === 0 || isNewFilter.current) {
-        // Clear tracking and reset for new filters
         seenIdeaIds.current = new Set<string>();
-        
-        // Add new ideas to seen set
         ideas.forEach(idea => seenIdeaIds.current.add(idea.id));
-        
-        // Replace ideas when starting from the beginning or changing filters
         setAllIdeas(ideas);
         isNewFilter.current = false;
       } else {
-        // Filter out duplicates and only add new ideas
         const newIdeas = ideas.filter(idea => !seenIdeaIds.current.has(idea.id));
-        
-        // Update seen set with new ideas
         newIdeas.forEach(idea => seenIdeaIds.current.add(idea.id));
-        
-        // Append only new ideas
         if (newIdeas.length > 0) {
           setAllIdeas(prev => [...prev, ...newIdeas]);
         }
       }
     }
   }, [ideas, filters.skip]);
-  
-  const handleFilterChange = (field: keyof ListParams, value: unknown) => {
-    // Mark that we're changing filters
+
+  const applyFilters = (nextFilters: ListParams) => {
     isNewFilter.current = true;
-    
-    setFilters(prev => ({
-      ...prev,
+    setFilters(previous => ({
+      ...nextFilters,
       skip: 0, // Reset pagination when changing filters
-      [field]: value,
+      limit: nextFilters.limit || previous.limit || PAGE_SIZE,
     }));
   };
-  
-  const handleSearch = () => {
-    // Mark that we're changing filters
-    isNewFilter.current = true;
-    
-    setFilters(prev => ({
-      ...prev,
-      skip: 0, // Reset pagination when searching
-      search: searchQuery.trim() || undefined
-    }));
+
+  const applySearchSuggestion = (suggestion: SearchSuggestion) => {
+    const nextFilters = { ...filters };
+    delete nextFilters.search;
+
+    if (suggestion.type === 'company') {
+      nextFilters.company_id = suggestion.value;
+    } else {
+      nextFilters.user_id = suggestion.value;
+    }
+
+    setSearchQuery(suggestion.label);
+    setSearchOpen(false);
+    applyFilters(nextFilters);
   };
-  
+
+  const handleSortChange = (selection: SortSelection) => {
+    applyFilters({ ...filters, ...sortSelectionToFilters(selection) });
+  };
+
+  const handleRemoveFilter = (field: keyof ListParams) => {
+    applyFilters(removeFilter(filters, field));
+  };
+
+  const handleResetFilters = () => {
+    setSearchOpen(false);
+    applyFilters({ ...DEFAULT_FILTERS });
+  };
+
   const loadMore = () => {
     setFilters(prev => ({
       ...prev,
@@ -173,265 +169,197 @@ const IdeasPage: React.FC = () => {
     }));
   };
 
+  const activeFilterLabels = getActiveFilterLabels(filters);
+
   return (
     <Box>
-      <Heading mb={6}>Investment Ideas</Heading>
-      
-      {/* Filters */}
-      <Box mb={6} p={4} borderWidth="1px" borderRadius="lg">
-        {/* Basic Filters */}
-        <Stack spacing={6} direction={{ base: 'column', md: 'row' }} mb={4}>
-          <Box flex="1">
-            <Text fontWeight="medium" mb={1}>Search</Text>
-            <Input 
-              placeholder="Search by company..." 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-              data-testid="company-search"
-            />
-          </Box>
-          
-          <Box width={{ base: '100%', md: '200px' }}>
-            <Text fontWeight="medium" mb={1}>Position Type</Text>
-            <Select 
-              width="100%"
-              value={filters.is_short !== undefined ? (filters.is_short ? 'short' : 'long') : 'all'}
-              onChange={(e) => {
-                const value = e.target.value;
-                if (value === 'all') {
-                  // Destructure to remove is_short but not use it directly
-                  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                  const { is_short, ...rest } = filters;
-                  setFilters(rest);
-                } else {
-                  handleFilterChange('is_short', value === 'short');
-                }
-              }}
-              data-testid="short-ideas-toggle"
+      <Box mb={{ base: 8, md: 10 }}>
+        <Text
+          color="amber.300"
+          fontSize="xs"
+          fontWeight="bold"
+          letterSpacing="0.16em"
+          textTransform="uppercase"
+          mb={2}
+        >
+          Investment research
+        </Text>
+        <Heading size="xl" letterSpacing="-0.03em">{title}</Heading>
+        <Text color="whiteAlpha.700" mt={2} maxW="560px">
+          Newest theses first. Search fast, refine only when needed.
+        </Text>
+      </Box>
+
+      <Flex
+        align={{ base: 'stretch', md: 'center' }}
+        direction={{ base: 'column', md: 'row' }}
+        gap={3}
+        p={{ base: 3, md: 4 }}
+        borderWidth="1px"
+        borderColor="whiteAlpha.200"
+        borderRadius="xl"
+        bg="rgba(13, 22, 38, 0.78)"
+      >
+        <InputGroup position="relative" flex="1" minW={{ base: '100%', md: '240px' }} zIndex={2}>
+          <InputLeftElement pointerEvents="none">
+            <SearchIcon color="whiteAlpha.500" />
+          </InputLeftElement>
+          <Input
+            data-testid="company-search"
+            aria-label="Search company, ticker, or author"
+            value={searchQuery}
+            placeholder="Search company, ticker, or author"
+            pl={10}
+            onChange={event => {
+              setSearchQuery(event.target.value);
+              setSearchOpen(true);
+            }}
+            onFocus={() => setSearchOpen(normalizedSearch.length >= 2)}
+            onKeyDown={event => {
+              if (event.key === 'Escape') {
+                setSearchOpen(false);
+              }
+              if (event.key === 'Enter' && suggestions[0]) {
+                event.preventDefault();
+                applySearchSuggestion(suggestions[0]);
+              }
+            }}
+          />
+          {searchOpen && suggestions.length > 0 && (
+            <Box
+              role="listbox"
+              position="absolute"
+              top="calc(100% + 8px)"
+              left={0}
+              right={0}
+              p={1}
+              bg="ink.900"
+              borderWidth="1px"
+              borderColor="whiteAlpha.300"
+              borderRadius="lg"
+              boxShadow="xl"
             >
-              <option value="all">All</option>
-              <option value="long">Long</option>
-              <option value="short">Short</option>
-            </Select>
-          </Box>
-          
-          <Box width={{ base: '100%', md: '200px' }}>
-            <Text fontWeight="medium" mb={1}>Contest Winner</Text>
-            <Select 
-              width="100%"
-              value={filters.is_contest_winner !== undefined ? (filters.is_contest_winner ? 'yes' : 'no') : 'all'}
-              onChange={(e) => {
-                const value = e.target.value;
-                if (value === 'all') {
-                  // Destructure to remove is_contest_winner but not use it directly
-                  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                  const { is_contest_winner, ...rest } = filters;
-                  setFilters(rest);
-                } else {
-                  handleFilterChange('is_contest_winner', value === 'yes');
-                }
-              }}
-              data-testid="user-search"
-            >
-              <option value="all">All</option>
-              <option value="yes">Yes</option>
-              <option value="no">No</option>
-            </Select>
-          </Box>
-        </Stack>
-        
-        {/* Performance Filters */}
-        <Heading size="sm" mt={4} mb={2}>Performance Filters</Heading>
-        <Stack spacing={6} direction={{ base: 'column', md: 'row' }} mb={4}>
-          <Box width={{ base: '100%', md: '200px' }}>
-            <Text fontWeight="medium" mb={1}>Has Performance</Text>
-            <Select
-              width="100%"
-              value={filters.has_performance !== undefined ? (filters.has_performance ? 'true' : 'false') : 'all'}
-              onChange={(e) => {
-                const value = e.target.value;
-                if (value === 'all') {
-                  // Destructure to remove has_performance
-                  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                  const { has_performance, ...rest } = filters;
-                  setFilters(rest);
-                } else {
-                  handleFilterChange('has_performance', value === 'true');
-                }
-              }}
-            >
-              <option value="all">All</option>
-              <option value="true">Yes</option>
-              <option value="false">No</option>
-            </Select>
-          </Box>
-          
-          <Box width={{ base: '100%', md: '200px' }}>
-            <Text fontWeight="medium" mb={1}>Performance Period</Text>
-            <Select
-              width="100%"
-              value={filters.performance_period || 'one_year_perf'}
-              onChange={(e) => {
-                const value = e.target.value;
-                if (value === 'none') {
-                  // Destructure to remove performance_period
-                  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                  const { performance_period, ...rest } = filters;
-                  setFilters(rest);
-                } else {
-                  handleFilterChange('performance_period', value);
-                }
-              }}
-            >
-              <option value="one_week_perf">1 Week</option>
-              <option value="two_week_perf">2 Weeks</option>
-              <option value="one_month_perf">1 Month</option>
-              <option value="three_month_perf">3 Months</option>
-              <option value="six_month_perf">6 Months</option>
-              <option value="one_year_perf">1 Year</option>
-              <option value="two_year_perf">2 Years</option>
-              <option value="three_year_perf">3 Years</option>
-              <option value="five_year_perf">5 Years</option>
-            </Select>
-          </Box>
-          
-          <Box width={{ base: '100%', md: '200px' }}>
-            <Text fontWeight="medium" mb={1}>Min Performance (%)</Text>
-            <Input 
-              width="100%"
-              type="number"
-              value={filters.min_performance !== undefined ? filters.min_performance : ''}
-              onChange={(e) => {
-                const value = e.target.value;
-                handleFilterChange('min_performance', value === '' ? undefined : parseFloat(value));
-              }}
-            />
-          </Box>
-          
-          <Box width={{ base: '100%', md: '200px' }}>
-            <Text fontWeight="medium" mb={1}>Max Performance (%)</Text>
-            <Input 
-              width="100%"
-              type="number"
-              value={filters.max_performance !== undefined ? filters.max_performance : ''}
-              onChange={(e) => {
-                const value = e.target.value;
-                handleFilterChange('max_performance', value === '' ? undefined : parseFloat(value));
-              }}
-            />
-          </Box>
-        </Stack>
-        
-        {/* Sorting Options */}
-        <Heading size="sm" mb={2}>Sorting</Heading>
-        <Stack spacing={6} direction={{ base: 'column', md: 'row' }}>
-          <Box width={{ base: '100%', md: '200px' }}>
-            <Text fontWeight="medium" mb={1}>Sort By</Text>
-            <Select
-              width="100%" 
-              value={filters.sort_by || 'date'}
-              onChange={(e) => {
-                const value = e.target.value;
-                // If sorting by performance, ensure we have a performance_period set
-                if (value === 'performance' && !filters.performance_period) {
-                  handleFilterChange('performance_period', 'one_year_perf');
-                }
-                handleFilterChange('sort_by', value);
-              }}
-            >
-              <option value="date">Date</option>
-              <option value="performance">Performance</option>
-            </Select>
-          </Box>
-          
-          {/* Only show performance period selector when sorting by performance */}
-          {filters.sort_by === 'performance' && (
-            <Box width={{ base: '100%', md: '200px' }}>
-              <Text fontWeight="medium" mb={1}>Performance Period</Text>
-              <Select
-                width="100%"
-                value={filters.performance_period || 'one_year_perf'}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  handleFilterChange('performance_period', value);
-                }}
-              >
-                <option value="one_week_perf">1 Week</option>
-                <option value="two_week_perf">2 Weeks</option>
-                <option value="one_month_perf">1 Month</option>
-                <option value="three_month_perf">3 Months</option>
-                <option value="six_month_perf">6 Months</option>
-                <option value="one_year_perf">1 Year</option>
-                <option value="two_year_perf">2 Years</option>
-                <option value="three_year_perf">3 Years</option>
-                <option value="five_year_perf">5 Years</option>
-              </Select>
+              {suggestions.map(suggestion => (
+                <Button
+                  key={`${suggestion.type}-${suggestion.value}`}
+                  data-testid={`${suggestion.type}-option`}
+                  role="option"
+                  variant="ghost"
+                  width="100%"
+                  justifyContent="flex-start"
+                  fontWeight="normal"
+                  onClick={() => applySearchSuggestion(suggestion)}
+                >
+                  {suggestion.label}
+                </Button>
+              ))}
             </Box>
           )}
-          
-          <Box width={{ base: '100%', md: '200px' }}>
-            <Text fontWeight="medium" mb={1}>Sort Order</Text>
-            <Select
-              width="100%"
-              value={filters.sort_order || 'desc'}
-              onChange={(e) => {
-                const value = e.target.value;
-                handleFilterChange('sort_order', value);
-              }}
-            >
-              <option value="asc">Ascending</option>
-              <option value="desc">Descending</option>
-            </Select>
-          </Box>
-        </Stack>
-      </Box>
-      
-      {/* Ideas Grid */}
-      {isLoading ? (
-        <Flex justify="center" align="center" minH="300px">
-          <Spinner size="xl" />
+        </InputGroup>
+
+        <Button
+          aria-label="Open filters"
+          onClick={onOpen}
+          color="amber.200"
+          borderColor="amber.300"
+          variant="outline"
+          minW={{ base: '100%', md: '120px' }}
+        >
+          Filters
+          {activeFilterLabels.length > 0 && (
+            <Badge ml={2} colorScheme="orange" borderRadius="full">
+              {activeFilterLabels.length}
+            </Badge>
+          )}
+        </Button>
+
+        <Select
+          aria-label="Sort ideas"
+          value={filtersToSortSelection(filters)}
+          onChange={event => handleSortChange(event.target.value as SortSelection)}
+          maxW={{ base: '100%', md: '170px' }}
+        >
+          <option value="newest">Newest first</option>
+          <option value="oldest">Oldest first</option>
+          <option value="performance-desc">Performance high to low</option>
+          <option value="performance-asc">Performance low to high</option>
+        </Select>
+      </Flex>
+
+      {activeFilterLabels.length > 0 && (
+        <Flex flexWrap="wrap" gap={2} mt={3}>
+          {activeFilterLabels.map(filter => (
+            <Tag key={filter.key} size="md" borderRadius="full" bg="ink.800" color="whiteAlpha.800">
+              <TagLabel>{filter.label}</TagLabel>
+              <TagCloseButton
+                aria-label={`Remove ${filter.label}`}
+                onClick={() => handleRemoveFilter(filter.key)}
+              />
+            </Tag>
+          ))}
+        </Flex>
+      )}
+
+      <Flex justify="space-between" align="end" mt={{ base: 8, md: 10 }} mb={3}>
+        <Box>
+          <Heading as="h2" size="md">Latest ideas</Heading>
+          <Text color="whiteAlpha.600" fontSize="sm" mt={1}>Newest theses first</Text>
+        </Box>
+        <Text color="whiteAlpha.600" fontSize="sm">{allIdeas.length} loaded</Text>
+      </Flex>
+
+      {isLoading && allIdeas.length === 0 ? (
+        <Flex justify="center" align="center" minH="300px" aria-label="Loading ideas">
+          <Spinner size="xl" color="amber.300" />
         </Flex>
       ) : isError ? (
-        <Alert status="error">
+        <Alert status="error" borderRadius="lg">
           <AlertIcon />
           <AlertTitle>Error loading ideas!</AlertTitle>
           <AlertDescription>
             {error ? (error as Error).message || 'An error occurred' : 'Unknown error occurred'}
           </AlertDescription>
         </Alert>
-      ) : allIdeas && allIdeas.length > 0 ? (
+      ) : allIdeas.length > 0 ? (
         <>
-          <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
-            {allIdeas.map((idea) => (
-              <IdeaCard 
-                key={idea.id} 
+          <Box borderTopWidth="1px" borderColor="whiteAlpha.200">
+            {allIdeas.map(idea => (
+              <IdeaCard
+                key={idea.id}
                 idea={idea}
-                // Don't pass performance prop - we'll let the card fetch its own performance data
-                // This keeps the list view light and doesn't require changes to the API
+                linkBasePath={linkBasePath}
               />
             ))}
-          </SimpleGrid>
-          
+          </Box>
+
           <Flex justify="center" mt={8}>
-            <Button 
-              onClick={loadMore} 
-              size="lg" 
-              colorScheme="blue"
+            <Button
+              onClick={loadMore}
+              size="lg"
+              colorScheme="orange"
+              variant="outline"
               isLoading={isLoading}
               loadingText="Loading..."
-              isDisabled={ideas && ideas.length === 0} // Disable if no more ideas
+              isDisabled={isLoading || !ideas || ideas.length === 0}
               data-testid="load-more-button"
             >
-              {ideas && ideas.length === 0 ? "No More Ideas" : "Load More"}
+              {ideas && ideas.length === 0 ? 'No more ideas' : 'Load more'}
             </Button>
           </Flex>
         </>
       ) : (
-        <Box textAlign="center" p={8}>
-          <Text fontSize="xl">No investment ideas found matching your criteria.</Text>
+        <Box textAlign="center" p={8} borderWidth="1px" borderColor="whiteAlpha.200" borderRadius="lg">
+          <Text color="whiteAlpha.800">No investment ideas found matching your criteria.</Text>
         </Box>
       )}
+
+      <IdeasFilterDrawer
+        isOpen={isOpen}
+        filters={filters}
+        onClose={onClose}
+        onApply={applyFilters}
+        onReset={handleResetFilters}
+      />
     </Box>
   );
 };
