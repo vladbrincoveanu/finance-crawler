@@ -112,7 +112,7 @@ if "file" in _pipeline_mode or _pipeline_mode in {"fs", "filesystem"}:
     _pipelines["ValueInvestorsClub.pipelines.FileExportPipeline"] = 200
 if "sql" in _pipeline_mode or _pipeline_mode in {"db", "database"}:
     _pipelines["ValueInvestorsClub.pipelines.SqlPipeline"] = 300
-if "holdings" in _pipeline_mode:
+if "source" in _pipeline_mode or "holdings" in _pipeline_mode:
     _pipelines["ValueInvestorsClub.holding_pipeline.HoldingPipeline"] = 300
 ITEM_PIPELINES = _pipelines
 

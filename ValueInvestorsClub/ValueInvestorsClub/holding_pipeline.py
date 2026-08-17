@@ -1,35 +1,63 @@
+import hashlib
+import json
 import os
-from datetime import date as date_cls
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
 try:
-    # scrapy CLI runtime: PYTHONPATH puts the inner ValueInvestorsClub/ dir first
-    from ValueInvestorsClub.models import Base, Investor, Company, Holding
+    from ValueInvestorsClub.ingestion import IngestionService
+    from ValueInvestorsClub.models import Company, Holding, Investor
 except ModuleNotFoundError:
-    # pytest runtime: pythonpath is the repo root only, so the package is nested
-    from ValueInvestorsClub.ValueInvestorsClub.models import Base, Investor, Company, Holding
+    from ValueInvestorsClub.ValueInvestorsClub.ingestion import IngestionService
+    from ValueInvestorsClub.ValueInvestorsClub.models import Company, Holding, Investor
 
 
 class HoldingPipeline:
-    """Upserts HoldingItems (Dataroma, HedgeFollow, ...) into Investor/Company/Holding tables."""
+    """Stage source holdings; legacy writes require an explicit approved bridge."""
 
     def __init__(self):
         self.engine = create_engine(
             os.getenv("DATABASE_URL", "postgresql+psycopg2://postgres:postgres@localhost/ideas")
         )
-        Base.Base.metadata.create_all(self.engine)
+        self.parser_version = os.getenv("PARSER_VERSION", "holding-pipeline-1")
 
     def process_item(self, item, spider=None):
-        investor_id = f"{item['investor_source']}:{item['investor_slug']}"
-        quarter_date = date_cls.fromisoformat(item["quarter_date"])
-
+        payload = self._observation_payload(item)
         with Session(self.engine) as session:
-            investor = session.get(Investor, investor_id)
+            service = IngestionService(session)
+            run = service.start_run(
+                source=payload["source"],
+                target="holdings",
+                parser_version=getattr(
+                    self,
+                    "parser_version",
+                    os.getenv("PARSER_VERSION", "holding-pipeline-1"),
+                ),
+            )
+            service.stage_raw(run, payload)
+            service.finish_run(run.id)
+        return item
+
+    def bridge_approved_item(
+        self,
+        item,
+        *,
+        legacy_investor_id: str,
+        legacy_company_ticker: str,
+    ):
+        """Populate legacy holdings only after an external approval decision."""
+        if not legacy_investor_id or not legacy_company_ticker:
+            raise ValueError("legacy bridge requires approved investor and company IDs")
+
+        from datetime import date as date_cls
+
+        quarter_date = date_cls.fromisoformat(item["quarter_date"])
+        with Session(self.engine) as session:
+            investor = session.get(Investor, legacy_investor_id)
             if investor is None:
                 investor = Investor(
-                    id=investor_id,
+                    id=legacy_investor_id,
                     name=item["investor_name"],
                     source=item["investor_source"],
                     source_slug=item["investor_slug"],
@@ -37,29 +65,56 @@ class HoldingPipeline:
                 )
                 session.add(investor)
 
-            company = session.get(Company, item["ticker"])
+            company = session.get(Company, legacy_company_ticker)
             if company is None:
-                company = Company(ticker=item["ticker"], company_name=item["company_name"])
+                company = Company(
+                    ticker=legacy_company_ticker,
+                    company_name=item["company_name"],
+                )
                 session.add(company)
-            session.commit()
+            session.flush()
 
-            holding = (
-                session.query(Holding)
-                .filter_by(investor_id=investor_id, company_id=item["ticker"], quarter_date=quarter_date)
-                .first()
-            )
+            holding = session.query(Holding).filter_by(
+                investor_id=legacy_investor_id,
+                company_id=legacy_company_ticker,
+                quarter_date=quarter_date,
+            ).one_or_none()
             if holding is None:
                 holding = Holding(
-                    investor_id=investor_id,
-                    company_id=item["ticker"],
+                    investor_id=legacy_investor_id,
+                    company_id=legacy_company_ticker,
                     quarter_date=quarter_date,
                 )
                 session.add(holding)
-
             holding.shares = item["shares"]
             holding.value_usd = item["value_usd"]
             holding.pct_portfolio = item["pct_portfolio"]
             holding.activity = item["activity"]
             session.commit()
-
         return item
+
+    def _observation_payload(self, item) -> dict:
+        payload = dict(item)
+        source = item.get("investor_source") or "unknown"
+        slug = item.get("investor_slug")
+        ticker = item.get("ticker")
+        quarter_date = item.get("quarter_date")
+        source_url = item.get("investor_profile_url") or "https://example.invalid/source"
+        serialized = json.dumps(payload, default=str, sort_keys=True).encode("utf-8")
+        return {
+            "source": source,
+            "investor_key": slug,
+            "investor_name": item.get("investor_name"),
+            "security_key": ticker,
+            "ticker": ticker,
+            "company_name": item.get("company_name"),
+            "period": quarter_date,
+            "shares": item.get("shares"),
+            "value_usd": item.get("value_usd"),
+            "pct_portfolio": item.get("pct_portfolio"),
+            "source_activity": item.get("activity"),
+            "source_url": source_url,
+            "source_observation_key": f"{source}:{slug}:{ticker}:{quarter_date}",
+            "document_hash": hashlib.sha256(serialized).hexdigest(),
+            "raw_payload": payload,
+        }
