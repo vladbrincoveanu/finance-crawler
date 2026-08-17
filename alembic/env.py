@@ -7,6 +7,10 @@ from alembic import context
 from sqlalchemy import engine_from_config, pool
 
 from ValueInvestorsClub.ValueInvestorsClub.models.Base import Base
+from ValueInvestorsClub.ValueInvestorsClub.models import curated as _curated_models
+from ValueInvestorsClub.ValueInvestorsClub.models import identity as _identity_models
+from ValueInvestorsClub.ValueInvestorsClub.models import ingestion as _ingestion_models
+from ValueInvestorsClub.ValueInvestorsClub.models import source as _source_models
 
 config = context.config
 

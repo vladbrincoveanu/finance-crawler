@@ -11,6 +11,10 @@ Usage:
 import os
 import sys
 import argparse
+from pathlib import Path
+
+from alembic import command
+from alembic.config import Config
 from sqlalchemy import create_engine, text
 from sqlalchemy.exc import ProgrammingError, OperationalError
 
@@ -88,18 +92,24 @@ def create_test_database():
 
 def initialize_test_database():
     """Initialize the test database with schema and test data."""
-    from ValueInvestorsClub.ValueInvestorsClub.models.Base import Base
-    
-    # Create engine for the test database
-    engine = create_engine(TEST_DB_URL)
-    
-    # Create all tables
     try:
-        Base.metadata.create_all(engine)
-        print("Created database schema")
+        config = Config(str(Path(__file__).resolve().parents[2] / "alembic.ini"))
+        config.set_main_option("sqlalchemy.url", TEST_DB_URL)
+
+        previous_database_url = os.environ.get("DATABASE_URL")
+        os.environ["DATABASE_URL"] = TEST_DB_URL
+        try:
+            command.upgrade(config, "head")
+        finally:
+            if previous_database_url is None:
+                os.environ.pop("DATABASE_URL", None)
+            else:
+                os.environ["DATABASE_URL"] = previous_database_url
+
+        print("Applied Alembic database schema")
         return True
     except Exception as e:
-        print(f"Error creating schema: {e}")
+        print(f"Error applying schema: {e}")
         return False
 
 def main():

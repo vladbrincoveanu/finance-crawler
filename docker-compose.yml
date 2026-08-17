@@ -23,6 +23,20 @@ services:
           memory: 2G
         reservations:
           memory: 1G
+
+  migrate:
+    build:
+      context: .
+      dockerfile: ./api/Dockerfile
+    restart: "no"
+    command: ["alembic", "upgrade", "head"]
+    environment:
+      - DATABASE_URL=postgresql+psycopg2://postgres:postgres@db/ideas
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - .:/app
       
   api:
     build:
@@ -36,6 +50,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     volumes:
       - .:/app
     deploy:
