@@ -8,7 +8,8 @@ from typing import List, Optional
 from datetime import date
 
 from api.database import get_db
-from api.models import Idea, Description, Catalysts, Performance
+from api.models import Comment, Idea, Description, Catalysts, Performance
+from api.schemas.schemas import CommentResponse
 from api.schemas import (
     IdeaResponse,
     IdeaDetailResponse,
@@ -186,6 +187,12 @@ def get_idea_detail(idea_id: str, db: Session = Depends(get_db)):
         # Query related data
         description = db.query(Description).filter(Description.idea_id == idea_id).first()
         catalysts = db.query(Catalysts).filter(Catalysts.idea_id == idea_id).first()
+        comments = (
+            db.query(Comment)
+            .filter(Comment.idea_id == idea_id)
+            .order_by(Comment.posted_at.asc(), Comment.id.asc())
+            .all()
+        )
         
         # Create base response from idea
         result = IdeaDetailResponse.model_validate(idea)
@@ -195,6 +202,7 @@ def get_idea_detail(idea_id: str, db: Session = Depends(get_db)):
             result.description = DescriptionResponse(description=description.description)
         if catalysts:
             result.catalysts = CatalystsResponse(catalysts=catalysts.catalysts)
+        result.comments = [CommentResponse.model_validate(comment) for comment in comments]
         
         # Try to get performance data, but don't fail if it doesn't exist
         try:

@@ -4,6 +4,7 @@ Imports the SQLAlchemy models from the ValueInvestorsClub package.
 """
 from ValueInvestorsClub.ValueInvestorsClub.models.Base import Base
 from ValueInvestorsClub.ValueInvestorsClub.models.Idea import Idea
+from ValueInvestorsClub.ValueInvestorsClub.models.Comment import Comment
 from ValueInvestorsClub.ValueInvestorsClub.models.Company import Company
 from ValueInvestorsClub.ValueInvestorsClub.models.Description import Description
 from ValueInvestorsClub.ValueInvestorsClub.models.User import User
@@ -49,6 +50,7 @@ from ValueInvestorsClub.ValueInvestorsClub.models.retrieval import (
 __all__ = [
     "Base",
     "Idea",
+    "Comment",
     "Company",
     "Description",
     "User",

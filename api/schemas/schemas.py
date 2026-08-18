@@ -3,7 +3,7 @@ Pydantic models for request/response schemas for the ValueInvestorsClub API.
 """
 from typing import Any, Dict, List, Literal, Optional
 from datetime import datetime, date
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class PerformanceResponse(BaseModel):
@@ -45,6 +45,16 @@ class DescriptionResponse(BaseModel):
 class CatalystsResponse(BaseModel):
     """Catalysts for an investment idea."""
     catalysts: str
+
+    model_config = {"from_attributes": True}
+
+
+class CommentResponse(BaseModel):
+    """A read-only forum comment captured by the VIC crawler."""
+    id: str
+    author: str
+    posted_at: str
+    text: str
 
     model_config = {"from_attributes": True}
 
@@ -99,6 +109,7 @@ class IdeaDetailResponse(IdeaResponse):
     description: Optional[DescriptionResponse] = None
     catalysts: Optional[CatalystsResponse] = None
     performance: Optional[PerformanceResponse] = None
+    comments: List[CommentResponse] = Field(default_factory=list)
 
     model_config = {"from_attributes": True}
 

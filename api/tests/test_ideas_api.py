@@ -16,6 +16,7 @@ from ValueInvestorsClub.ValueInvestorsClub.models.User import User
 from ValueInvestorsClub.ValueInvestorsClub.models.Description import Description
 from ValueInvestorsClub.ValueInvestorsClub.models.Catalysts import Catalysts
 from ValueInvestorsClub.ValueInvestorsClub.models.Performance import Performance
+from ValueInvestorsClub.ValueInvestorsClub.models.Comment import Comment
 
 # Create test data
 @pytest.fixture
@@ -123,10 +124,33 @@ def test_data(db_session):
         threeYearPerf=1.7,
         fiveYearPerf=1.8
     )
+
+    comment_later = Comment(
+        id="comment-z",
+        idea_id=idea1_id,
+        author="Investor Z",
+        posted_at="2026-08-17T10:00:00Z",
+        text="Later comment",
+    )
+    comment_first = Comment(
+        id="comment-a",
+        idea_id=idea1_id,
+        author="Investor A",
+        posted_at="2026-08-17T10:00:00Z",
+        text="First line\nSecond line",
+    )
+    comment_other = Comment(
+        id="comment-other",
+        idea_id=idea2_id,
+        author="Other investor",
+        posted_at="2026-08-17T09:00:00Z",
+        text="Belongs to another idea",
+    )
     
     db_session.add_all([
         description1, description2, description3,
-        catalysts1, catalysts2, performance1
+        catalysts1, catalysts2, performance1,
+        comment_later, comment_first, comment_other,
     ])
     db_session.commit()
     
@@ -136,7 +160,8 @@ def test_data(db_session):
         "ideas": [idea1, idea2, idea3],
         "descriptions": [description1, description2, description3],
         "catalysts": [catalysts1, catalysts2],
-        "performances": [performance1]
+        "performances": [performance1],
+        "comments": [comment_later, comment_first, comment_other],
     }
 
 # Test cases
@@ -328,6 +353,23 @@ def test_get_idea_detail(client, test_data):
         "5Y": 1.8
     }
     assert performance["performance_periods"] == expected_periods
+
+    comments = idea["comments"]
+    assert [comment["id"] for comment in comments] == ["comment-a", "comment-z"]
+    assert comments[0]["author"] == "Investor A"
+    assert comments[0]["posted_at"] == "2026-08-17T10:00:00Z"
+    assert comments[0]["text"] == "First line\nSecond line"
+    assert all(comment["id"] != "comment-other" for comment in comments)
+
+
+def test_get_idea_detail_returns_empty_comments(client, test_data):
+    """Test that an idea without crawled comments returns an empty list."""
+    idea_id = test_data["ideas"][2].id
+
+    response = client.get(f"/ideas/{idea_id}")
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["comments"] == []
 
 def test_get_idea_detail_not_found(client):
     """Test 404 error for non-existent idea."""
