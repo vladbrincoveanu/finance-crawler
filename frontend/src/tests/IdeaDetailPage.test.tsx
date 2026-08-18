@@ -32,7 +32,20 @@ const baseIdeaDetail: IdeaDetail = {
   comments: [],
 };
 
-const renderPage = (idea: IdeaDetail) => {
+const renderPage = (
+  idea: IdeaDetail,
+  {
+    entry = '/ideas/idea-1',
+    routePath = '/ideas/:id',
+    basePath = '/ideas',
+    backLabel = 'Back to Ideas',
+  }: {
+    entry?: string;
+    routePath?: string;
+    basePath?: string;
+    backLabel?: string;
+  } = {},
+) => {
   mockUseIdeaDetail.mockReturnValue({
     data: idea,
     isLoading: false,
@@ -43,11 +56,14 @@ const renderPage = (idea: IdeaDetail) => {
   return render(
     <ChakraProvider theme={theme}>
       <MemoryRouter
-        initialEntries={['/ideas/idea-1']}
+        initialEntries={[entry]}
         future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
       >
         <Routes>
-          <Route path="/ideas/:id" element={<IdeaDetailPage />} />
+          <Route
+            path={routePath}
+            element={<IdeaDetailPage basePath={basePath} backLabel={backLabel} />}
+          />
         </Routes>
       </MemoryRouter>
     </ChakraProvider>,
@@ -83,6 +99,40 @@ describe('IdeaDetailPage investor discussion', () => {
           element.textContent === 'First line\nSecond line',
       ),
     ).toBeInTheDocument();
+  });
+
+  test('renders crawled comments through the article alias configuration', () => {
+    renderPage(
+      {
+        ...baseIdeaDetail,
+        comments: [
+          {
+            id: 'comment-1',
+            author: 'Investor A',
+            posted_at: '2026-08-17T10:00:00Z',
+            text: 'First line\nSecond line',
+          },
+        ],
+      },
+      {
+        entry: '/articles/idea-1',
+        routePath: '/articles/:id',
+        basePath: '/articles',
+        backLabel: 'Back to Articles',
+      },
+    );
+
+    expect(mockUseIdeaDetail).toHaveBeenCalledWith('idea-1');
+    expect(screen.getByRole('heading', { name: 'Investor discussion (1)' })).toBeInTheDocument();
+    expect(screen.getByText('Investor A')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        (_, element) =>
+          element?.tagName.toLowerCase() === 'p' &&
+          element.textContent === 'First line\nSecond line',
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Back to Articles' })).toHaveAttribute('href', '/articles');
   });
 
   test('wraps long mobile comment tokens while preserving newlines', () => {
