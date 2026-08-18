@@ -9,8 +9,8 @@ from datetime import date
 
 from api.database import get_db
 from api.models import Comment, Idea, Description, Catalysts, Performance
-from api.schemas.schemas import CommentResponse
 from api.schemas import (
+    CommentResponse,
     IdeaResponse,
     IdeaDetailResponse,
     DescriptionResponse,

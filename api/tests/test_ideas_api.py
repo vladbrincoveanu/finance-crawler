@@ -125,6 +125,13 @@ def test_data(db_session):
         fiveYearPerf=1.8
     )
 
+    comment_early = Comment(
+        id="comment-early",
+        idea_id=idea1_id,
+        author="Investor Early",
+        posted_at="2026-08-17T09:00:00Z",
+        text="Earlier comment",
+    )
     comment_later = Comment(
         id="comment-z",
         idea_id=idea1_id,
@@ -150,7 +157,7 @@ def test_data(db_session):
     db_session.add_all([
         description1, description2, description3,
         catalysts1, catalysts2, performance1,
-        comment_later, comment_first, comment_other,
+        comment_early, comment_later, comment_first, comment_other,
     ])
     db_session.commit()
     
@@ -161,7 +168,7 @@ def test_data(db_session):
         "descriptions": [description1, description2, description3],
         "catalysts": [catalysts1, catalysts2],
         "performances": [performance1],
-        "comments": [comment_later, comment_first, comment_other],
+        "comments": [comment_early, comment_later, comment_first, comment_other],
     }
 
 # Test cases
@@ -355,10 +362,14 @@ def test_get_idea_detail(client, test_data):
     assert performance["performance_periods"] == expected_periods
 
     comments = idea["comments"]
-    assert [comment["id"] for comment in comments] == ["comment-a", "comment-z"]
-    assert comments[0]["author"] == "Investor A"
-    assert comments[0]["posted_at"] == "2026-08-17T10:00:00Z"
-    assert comments[0]["text"] == "First line\nSecond line"
+    assert [comment["id"] for comment in comments] == [
+        "comment-early",
+        "comment-a",
+        "comment-z",
+    ]
+    assert comments[1]["author"] == "Investor A"
+    assert comments[1]["posted_at"] == "2026-08-17T10:00:00Z"
+    assert comments[1]["text"] == "First line\nSecond line"
     assert all(comment["id"] != "comment-other" for comment in comments)
 
 
