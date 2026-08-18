@@ -1,7 +1,7 @@
 ---
 title: VIC comments and source crawl views
 date: 2026-08-18
-status: pending-review
+status: approved
 ui_scope: true
 ---
 
@@ -26,6 +26,8 @@ The crawler and persistence path already contains the required VIC comment data:
 - `ValueInvestorsClub/ValueInvestorsClub/pipelines.py::SqlPipeline.process_item()` writes each item comment to `comments`.
 - `ValueInvestorsClub/ValueInvestorsClub/models/Comment.py` stores `idea_id`, `author`, `posted_at`, and `text`.
 - `alembic/versions/20260816_0001_initial_identity_schema.py` defines `comments.idea_id` as a foreign key to `ideas.id`.
+
+These are read-only forum comments captured by the ValueInvestorsClub crawl. This pass does not add a comment composer or any create, edit, delete, or moderation operation. Operator-run/manual crawls may continue outside this UI; no crawl-start control is added here.
 
 The missing path is after persistence:
 
@@ -102,6 +104,7 @@ Add an operations link to the main product dashboard for the Grafana ingestion d
 - Missing comments never fail the idea detail request.
 - Source crawl warnings continue to use the existing `partial`, `failed`, empty-run, and no-run states.
 - No new crawler execution is triggered by the UI change.
+- Manual crawl execution remains an operator concern outside this UI scope.
 - If Grafana is unavailable, the product dashboard remains usable and the link does not turn telemetry absence into a product-data error.
 
 # Testing
