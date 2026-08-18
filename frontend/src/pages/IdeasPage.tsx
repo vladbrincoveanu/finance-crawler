@@ -172,7 +172,7 @@ const IdeasPage: React.FC<IdeasPageProps> = ({
   const activeFilterLabels = getActiveFilterLabels(filters);
 
   return (
-    <Box>
+    <Box data-testid="ideas-page" maxW="100%" minW={0} overflowX="hidden">
       <Box mb={{ base: 8, md: 10 }}>
         <Text
           color="amber.300"
@@ -185,7 +185,7 @@ const IdeasPage: React.FC<IdeasPageProps> = ({
           Investment research
         </Text>
         <Heading size="xl" letterSpacing="-0.03em">{title}</Heading>
-        <Text color="whiteAlpha.700" mt={2} maxW="560px">
+        <Text color="whiteAlpha.700" mt={2} maxW="100%" whiteSpace="normal">
           Newest theses first. Search fast, refine only when needed.
         </Text>
       </Box>
@@ -194,13 +194,21 @@ const IdeasPage: React.FC<IdeasPageProps> = ({
         align={{ base: 'stretch', md: 'center' }}
         direction={{ base: 'column', md: 'row' }}
         gap={3}
+        w="100%"
+        minW={0}
         p={{ base: 3, md: 4 }}
         borderWidth="1px"
         borderColor="whiteAlpha.200"
         borderRadius="xl"
         bg="rgba(13, 22, 38, 0.78)"
       >
-        <InputGroup position="relative" flex="1" minW={{ base: '100%', md: '240px' }} zIndex={2}>
+        <InputGroup
+          position="relative"
+          flex={{ base: 'none', md: 1 }}
+          w={{ base: '100%', md: 'auto' }}
+          minW={0}
+          zIndex={2}
+        >
           <InputLeftElement pointerEvents="none">
             <SearchIcon color="whiteAlpha.500" />
           </InputLeftElement>
@@ -263,7 +271,8 @@ const IdeasPage: React.FC<IdeasPageProps> = ({
           color="amber.200"
           borderColor="amber.300"
           variant="outline"
-          minW={{ base: '100%', md: '120px' }}
+          w={{ base: '100%', md: 'auto' }}
+          minW={{ md: '120px' }}
         >
           Filters
           {activeFilterLabels.length > 0 && (
@@ -277,7 +286,8 @@ const IdeasPage: React.FC<IdeasPageProps> = ({
           aria-label="Sort ideas"
           value={filtersToSortSelection(filters)}
           onChange={event => handleSortChange(event.target.value as SortSelection)}
-          maxW={{ base: '100%', md: '170px' }}
+          w={{ base: '100%', md: '170px' }}
+          maxW="100%"
         >
           <option value="newest">Newest first</option>
           <option value="oldest">Oldest first</option>

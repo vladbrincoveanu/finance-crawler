@@ -152,6 +152,7 @@ describe('IdeaCard Component', () => {
     const row = await screen.findByTestId('idea-card');
 
     expect(row).toHaveAttribute('role', 'link');
+    await screen.findByText('+3.2%');
     expect(row).toHaveTextContent('1M');
     expect(row).toHaveTextContent('+3.2%');
   });

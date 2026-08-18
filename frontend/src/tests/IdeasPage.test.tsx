@@ -168,4 +168,13 @@ describe('IdeasPage', () => {
       expect.objectContaining({ skip: 20, limit: 20 }),
     ));
   });
+
+  test('keeps the ideas surface bounded for narrow viewports', () => {
+    renderPage();
+
+    expect(screen.getByTestId('ideas-page')).toHaveStyle({
+      maxWidth: '100%',
+      overflowX: 'hidden',
+    });
+  });
 });

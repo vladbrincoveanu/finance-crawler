@@ -36,10 +36,40 @@ describe('Ideas Page', () => {
   });
 
   it('loads more ideas', () => {
+    const firstPage = [
+      {
+        id: 'e2e-idea-1',
+        link: '',
+        company_id: 'E2E-A',
+        user_id: '/member/e2e-a',
+        date: '2026-08-17T00:00:00Z',
+        is_short: false,
+        is_contest_winner: false,
+      },
+      {
+        id: 'e2e-idea-2',
+        link: '',
+        company_id: 'E2E-B',
+        user_id: '/member/e2e-b',
+        date: '2026-08-16T00:00:00Z',
+        is_short: true,
+        is_contest_winner: false,
+      },
+    ];
+    const secondPage = [{ ...firstPage[0], id: 'e2e-idea-3', company_id: 'E2E-C' }];
+
+    cy.intercept('GET', '**/api/ideas/**', request => {
+      const skip = new URL(request.url).searchParams.get('skip');
+      request.reply(skip === '20' ? secondPage : firstPage);
+    }).as('ideasPage');
+    cy.visit('/ideas');
+    cy.wait('@ideasPage');
+
     cy.get('[data-testid="idea-card"]').then($initialCards => {
       const initialCount = $initialCards.length;
 
       cy.get('[data-testid="load-more-button"]').scrollIntoView().click();
+      cy.wait('@ideasPage');
       cy.get('[data-testid="idea-card"]').should('have.length.greaterThan', initialCount);
     });
   });
@@ -83,8 +113,8 @@ describe('Navigation', () => {
     cy.contains('Users').click();
     cy.url().should('include', '/users');
     
-    // Go back to home
-    cy.contains('Home').click();
+    // Go back to the landing page through the brand link
+    cy.contains('VIC / FIELD NOTES').click();
     cy.url().should('not.include', '/ideas');
   });
 });
