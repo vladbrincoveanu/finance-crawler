@@ -201,7 +201,7 @@ const IdeaDetailPage: React.FC = () => {
                     </Text>
                   )}
                 </Flex>
-                <Text whiteSpace="pre-wrap">{comment.text}</Text>
+                <Text whiteSpace="pre-wrap" overflowWrap="anywhere">{comment.text}</Text>
               </Box>
             ))}
           </Stack>

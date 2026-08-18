@@ -43,11 +43,11 @@ const renderPage = (idea: IdeaDetail) => {
   return render(
     <ChakraProvider theme={theme}>
       <MemoryRouter
-        initialEntries={['/articles/idea-1']}
+        initialEntries={['/ideas/idea-1']}
         future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
       >
         <Routes>
-          <Route path="/articles/:id" element={<IdeaDetailPage />} />
+          <Route path="/ideas/:id" element={<IdeaDetailPage />} />
         </Routes>
       </MemoryRouter>
     </ChakraProvider>,
@@ -72,6 +72,7 @@ describe('IdeaDetailPage investor discussion', () => {
       ],
     });
 
+    expect(mockUseIdeaDetail).toHaveBeenCalledWith('idea-1');
     expect(screen.getByRole('heading', { name: 'Investor discussion (1)' })).toBeInTheDocument();
     expect(screen.getByText('Investor A')).toBeInTheDocument();
     expect(screen.getByText('2026-08-17T10:00:00Z')).toBeInTheDocument();
@@ -82,6 +83,37 @@ describe('IdeaDetailPage investor discussion', () => {
           element.textContent === 'First line\nSecond line',
       ),
     ).toBeInTheDocument();
+  });
+
+  test('wraps long mobile comment tokens while preserving newlines', () => {
+    const longToken = 'x'.repeat(160);
+    const text = `First line\n${longToken}\nSecond line`;
+    const originalWidth = window.innerWidth;
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 375 });
+
+    try {
+      renderPage({
+        ...baseIdeaDetail,
+        comments: [
+          {
+            id: 'comment-1',
+            author: 'Investor A',
+            posted_at: '2026-08-17T10:00:00Z',
+            text,
+          },
+        ],
+      });
+
+      const paragraph = screen.getByText(
+        (_, element) =>
+          element?.tagName.toLowerCase() === 'p' && element.textContent === text,
+      );
+
+      expect(paragraph).toHaveStyle({ overflowWrap: 'anywhere' });
+      expect(paragraph.textContent).toBe(text);
+    } finally {
+      Object.defineProperty(window, 'innerWidth', { configurable: true, value: originalWidth });
+    }
   });
 
   test('renders the empty crawled comments state', () => {
