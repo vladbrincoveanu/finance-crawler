@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react';
 import { ChakraProvider } from '@chakra-ui/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import IdeaDetailPage from '../pages/IdeaDetailPage';
+import ArticleDetailPage from '../pages/ArticleDetailPage';
 import { useIdeaDetail } from '../hooks/useIdeas';
 import theme from '../theme';
 import { IdeaDetail } from '../types/api';
@@ -39,11 +40,13 @@ const renderPage = (
     routePath = '/ideas/:id',
     basePath = '/ideas',
     backLabel = 'Back to Ideas',
+    page,
   }: {
     entry?: string;
     routePath?: string;
     basePath?: string;
     backLabel?: string;
+    page?: React.ReactElement;
   } = {},
 ) => {
   mockUseIdeaDetail.mockReturnValue({
@@ -52,6 +55,8 @@ const renderPage = (
     isError: false,
     error: null,
   } as ReturnType<typeof useIdeaDetail>);
+
+  const pageElement = page ?? <IdeaDetailPage basePath={basePath} backLabel={backLabel} />;
 
   return render(
     <ChakraProvider theme={theme}>
@@ -62,7 +67,7 @@ const renderPage = (
         <Routes>
           <Route
             path={routePath}
-            element={<IdeaDetailPage basePath={basePath} backLabel={backLabel} />}
+            element={pageElement}
           />
         </Routes>
       </MemoryRouter>
@@ -117,8 +122,7 @@ describe('IdeaDetailPage investor discussion', () => {
       {
         entry: '/articles/idea-1',
         routePath: '/articles/:id',
-        basePath: '/articles',
-        backLabel: 'Back to Articles',
+        page: <ArticleDetailPage />,
       },
     );
 
