@@ -69,6 +69,7 @@ def validate_schema(schema: Dict[str, Any]) -> bool:
         "/review/identity",
         "/review/quarantine",
         "/search",
+        "/crawl/status",
     ]
     
     missing_endpoints = []
@@ -93,6 +94,12 @@ def validate_schema(schema: Dict[str, Any]) -> bool:
         "CuratedHoldingResponse",
         "CuratedInvestorDetailResponse",
         "SearchResultResponse",
+        "CrawlRunResponse",
+        "CrawlCountsResponse",
+        "CrawlHoldingSampleResponse",
+        "CrawlIdeaSampleResponse",
+        "CrawlSourceStatusResponse",
+        "CommentResponse",
     ]
     
     missing_schemas = []
@@ -126,6 +133,27 @@ def validate_schema(schema: Dict[str, Any]) -> bool:
         print(f"Missing required fields in IdeaResponse: {', '.join(missing_idea_fields)}")
         return False
 
+    idea_detail_response = schemas.get("IdeaDetailResponse", {})
+    comments = idea_detail_response.get("properties", {}).get("comments", {})
+    if comments.get("type") != "array" or comments.get("items", {}).get(
+        "$ref"
+    ) != "#/components/schemas/CommentResponse":
+        print("IdeaDetailResponse.comments must be an array of CommentResponse")
+        return False
+
+    comment_response = schemas.get("CommentResponse", {})
+    comment_properties = comment_response.get("properties", {})
+    required_comment_fields = ["id", "author", "posted_at", "text"]
+    missing_comment_fields = [
+        field for field in required_comment_fields if field not in comment_properties
+    ]
+    if missing_comment_fields:
+        print(
+            "Missing required fields in CommentResponse: "
+            + ", ".join(missing_comment_fields)
+        )
+        return False
+
     curated_holding = schemas.get("CuratedHoldingResponse", {})
     curated_holding_properties = curated_holding.get("properties", {})
     required_curated_holding_fields = [
@@ -151,6 +179,81 @@ def validate_schema(schema: Dict[str, Any]) -> bool:
             + ", ".join(missing_curated_holding_fields)
         )
         return False
+
+    crawl_status_get = paths.get("/crawl/status", {}).get("get", {})
+    crawl_response = (
+        crawl_status_get.get("responses", {}).get("200", {}).get("content", {})
+        .get("application/json", {})
+        .get("schema", {})
+    )
+    if crawl_response.get("type") != "array" or crawl_response.get("items", {}).get(
+        "$ref"
+    ) != "#/components/schemas/CrawlSourceStatusResponse":
+        print("/crawl/status must return an array of CrawlSourceStatusResponse")
+        return False
+
+    crawl_fields = {
+        "CrawlRunResponse": {
+            "id",
+            "source",
+            "target",
+            "status",
+            "parser_version",
+            "started_at",
+            "finished_at",
+            "rows_seen",
+            "rows_accepted",
+            "rows_rejected",
+            "rows_duplicate",
+            "error_message",
+        },
+        "CrawlCountsResponse": {
+            "parser_output",
+            "staged",
+            "pending_identity",
+            "curated",
+            "public",
+        },
+        "CrawlHoldingSampleResponse": {
+            "kind",
+            "investor_name",
+            "ticker",
+            "company_name",
+            "period",
+            "shares",
+            "value_usd",
+            "pct_portfolio",
+            "activity",
+            "identity_status",
+            "source_url",
+        },
+        "CrawlIdeaSampleResponse": {
+            "kind",
+            "ticker",
+            "company_name",
+            "idea_date",
+            "source_url",
+            "link",
+        },
+        "CrawlSourceStatusResponse": {
+            "source",
+            "label",
+            "target",
+            "public_route",
+            "latest_run",
+            "counts",
+            "sample",
+        },
+    }
+    for schema_name, required_fields in crawl_fields.items():
+        properties = schemas.get(schema_name, {}).get("properties", {})
+        missing_fields = sorted(required_fields - properties.keys())
+        if missing_fields:
+            print(
+                f"Missing required fields in {schema_name}: "
+                + ", ".join(missing_fields)
+            )
+            return False
     
     return True
 
