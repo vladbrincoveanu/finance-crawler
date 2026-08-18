@@ -81,6 +81,7 @@ describe('ideasApi', () => {
       date: '2023-01-01T00:00:00Z',
       is_short: false,
       is_contest_winner: false,
+      comments: [],
       company: {
         ticker: 'AAPL',
         company_name: 'Apple Inc.'

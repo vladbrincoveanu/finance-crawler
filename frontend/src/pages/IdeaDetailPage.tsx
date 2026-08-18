@@ -14,6 +14,7 @@ import {
   AlertIcon,
   Link,
   HStack,
+  Stack,
 } from '@chakra-ui/react';
 import { useIdeaDetail } from '../hooks/useIdeas';
 import PerformanceChart from '../components/PerformanceChart';
@@ -71,6 +72,7 @@ const IdeaDetailPage: React.FC = () => {
     description,
     catalysts,
     performance,
+    comments,
   } = idea;
 
   const formattedDate = new Date(date).toLocaleDateString('en-US', {
@@ -167,6 +169,54 @@ const IdeaDetailPage: React.FC = () => {
           </Box>
         </GridItem>
       </Grid>
+
+      <Box mt={10} w="100%">
+        <Heading size="md" mb={4}>Investor discussion ({comments.length})</Heading>
+        {comments.length > 0 ? (
+          <Stack spacing={3}>
+            {comments.map(comment => (
+              <Box
+                key={comment.id}
+                p={4}
+                border="1px solid"
+                borderColor="whiteAlpha.200"
+                borderRadius="lg"
+                bg="whiteAlpha.50"
+              >
+                <Flex
+                  direction={{ base: 'column', md: 'row' }}
+                  align={{ base: 'flex-start', md: 'center' }}
+                  justify="space-between"
+                  gap={2}
+                  mb={2}
+                >
+                  {comment.author && (
+                    <Text fontWeight="semibold" color="whiteAlpha.900">
+                      {comment.author}
+                    </Text>
+                  )}
+                  {comment.posted_at && (
+                    <Text as="time" dateTime={comment.posted_at} color="whiteAlpha.600" fontSize="sm">
+                      {comment.posted_at}
+                    </Text>
+                  )}
+                </Flex>
+                <Text whiteSpace="pre-wrap">{comment.text}</Text>
+              </Box>
+            ))}
+          </Stack>
+        ) : (
+          <Box
+            p={4}
+            border="1px solid"
+            borderColor="whiteAlpha.200"
+            borderRadius="lg"
+            bg="whiteAlpha.50"
+          >
+            <Text color="whiteAlpha.700">No comments were captured for this crawl</Text>
+          </Box>
+        )}
+      </Box>
     </Box>
   );
 };

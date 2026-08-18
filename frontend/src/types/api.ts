@@ -104,12 +104,20 @@ export interface Performance {
   performance_periods?: Record<string, number>;
 }
 
+export interface IdeaComment {
+  id: string;
+  author: string;
+  posted_at: string;
+  text: string;
+}
+
 export interface IdeaDetail extends Idea {
   company?: Company;
   user?: User;
   description?: Description;
   catalysts?: Catalysts;
   performance?: Performance;
+  comments: IdeaComment[];
 }
 
 export interface PaginatedResponse<T> {
