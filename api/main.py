@@ -8,10 +8,11 @@ from starlette.requests import Request
 
 from api.routes import (
     companies_router,
+    crawl_router,
     health_router,
     holdings_router,
-    investors_router,
     ideas_router,
+    investors_router,
     review_router,
     search_router,
     users_router,
@@ -30,7 +31,10 @@ app = FastAPI(
 
 @app.middleware("http")
 async def trace_api_request(request: Request, call_next):
-    with span("api.request", {"http.method": request.method, "http.route": request.url.path}):
+    with span(
+        "api.request",
+        {"http.method": request.method, "http.route": request.url.path},
+    ):
         return await call_next(request)
 
 # Include all routers
@@ -42,6 +46,7 @@ app.include_router(holdings_router)
 app.include_router(review_router)
 app.include_router(investors_router)
 app.include_router(search_router)
+app.include_router(crawl_router)
 
 
 if __name__ == "__main__":

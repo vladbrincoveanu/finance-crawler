@@ -34,8 +34,8 @@ const HomePage: React.FC = () => {
           This is an independent analysis tool not affiliated with ValueInvestorsClub.com
         </Text>
         <Stack direction={{ base: 'column', md: 'row' }} spacing={4} justify="center">
-          <Button as={RouterLink} to="/ideas" size="lg" colorScheme="blue" color="white">
-            Browse Ideas
+          <Button as={RouterLink} to="/articles" size="lg" colorScheme="blue" color="white">
+            Browse Articles
           </Button>
           <Button
             as={RouterLink}
@@ -48,6 +48,18 @@ const HomePage: React.FC = () => {
             _active={{ bg: 'whiteAlpha.300', color: 'white', borderColor: 'amber.300' }}
           >
             View Companies
+          </Button>
+          <Button
+            as={RouterLink}
+            to="/sources"
+            size="lg"
+            variant="outline"
+            color="whiteAlpha.900"
+            borderColor="whiteAlpha.500"
+            _hover={{ bg: 'whiteAlpha.200', color: 'white', borderColor: 'amber.300' }}
+            _active={{ bg: 'whiteAlpha.300', color: 'white', borderColor: 'amber.300' }}
+          >
+            Verify Sources
           </Button>
         </Stack>
         <Link
@@ -72,8 +84,8 @@ const HomePage: React.FC = () => {
             Access a comprehensive collection of publicly available investment ideas from
             ValueInvestorsClub.com, including both long and short positions.
           </Text>
-          <Button as={RouterLink} to="/ideas" mt={4} colorScheme="blue" variant="outline">
-            Browse Ideas
+          <Button as={RouterLink} to="/articles" mt={4} colorScheme="blue" variant="outline">
+            Browse Articles
           </Button>
         </Box>
         
@@ -83,8 +95,8 @@ const HomePage: React.FC = () => {
             View detailed performance metrics for each investment idea, including short-term
             and long-term returns.
           </Text>
-          <Button as={RouterLink} to="/ideas" mt={4} colorScheme="blue" variant="outline">
-            Analyze Performance
+          <Button as={RouterLink} to="/articles" mt={4} colorScheme="blue" variant="outline">
+            Analyze Articles
           </Button>
         </Box>
         
@@ -117,13 +129,13 @@ const HomePage: React.FC = () => {
         </Text>
         <Button
           as={RouterLink}
-          to="/ideas"
+          to="/articles"
           size="lg"
           colorScheme="blue"
           px={8}
           color="white"
         >
-          Browse Ideas
+          Browse Articles
         </Button>
       </Box>
     </Box>

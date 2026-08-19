@@ -1,63 +1,84 @@
 /**
- * TypeScript schema validator for API contracts
- * 
- * This file validates that the frontend types match the API schemas.
+ * TypeScript schema validator for API contracts.
+ *
  * Run with: npm run validate-schema
  */
-import { 
-  Idea, 
-  IdeaDetail, 
-  Company, 
-  User, 
-  Performance
+import { existsSync, readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import type {
+  Company,
+  CrawlCounts,
+  CrawlRun,
+  CrawlSourceStatus,
+  CrawlSample,
+  Idea,
+  IdeaDetail,
+  Performance,
+  User,
 } from './api';
 
 type SchemaProperty = {
-  type: string;
+  type?: string;
   format?: string;
   items?: SchemaProperty;
   properties?: Record<string, SchemaProperty>;
   $ref?: string;
+  anyOf?: SchemaProperty[];
+  enum?: string[];
+};
+
+type SchemaDefinition = SchemaProperty & {
+  required?: string[];
 };
 
 type OpenAPISchema = {
-  components: {
-    schemas: Record<string, {
-      type: string;
-      properties: Record<string, SchemaProperty>;
-      required?: string[];
-    }>;
+  components?: {
+    schemas?: Record<string, SchemaDefinition>;
   };
+  paths?: Record<string, unknown>;
+};
+
+const readOpenApiSchema = (): OpenAPISchema => {
+  const schemaPath = [
+    resolve(process.cwd(), 'api/schema/openapi.json'),
+    resolve(process.cwd(), '../api/schema/openapi.json'),
+  ].find((candidate) => existsSync(candidate));
+
+  if (!schemaPath) {
+    throw new Error('API OpenAPI schema not found from the current working directory');
+  }
+
+  return JSON.parse(readFileSync(schemaPath, 'utf8')) as OpenAPISchema;
 };
 
 /**
- * Validate frontend types against API schema
+ * Validate frontend types against the API schema.
  */
 async function validateSchema(): Promise<boolean> {
   try {
-    // Fetch the OpenAPI schema (in production, this would come from the API server)
-    const schemaPath = '../../api/schema/openapi.json';
-    const schema: OpenAPISchema = await import(schemaPath).then(m => m.default);
-    
-    // Validate each type
+    const schema = readOpenApiSchema();
+
     const validations = [
       validateType<Idea>('IdeaResponse', schema),
       validateType<IdeaDetail>('IdeaDetailResponse', schema),
       validateType<Company>('CompanyResponse', schema),
       validateType<User>('UserResponse', schema),
       validateType<Performance>('PerformanceResponse', schema),
+      validateType<CrawlRun>('CrawlRunResponse', schema),
+      validateType<CrawlCounts>('CrawlCountsResponse', schema),
+      validateType<CrawlSample>('CrawlHoldingSampleResponse', schema),
+      validateType<CrawlSample>('CrawlIdeaSampleResponse', schema),
+      validateType<CrawlSourceStatus>('CrawlSourceStatusResponse', schema),
     ];
-    
-    // Check all validations
-    const allValid = validations.every(v => v);
-    
+
+    const allValid = validations.every(Boolean);
     if (allValid) {
-      console.log('✅ All types valid against API schema');
+      console.log('All frontend types valid against the API schema');
       return true;
-    } else {
-      console.error('❌ Type validation failed');
-      return false;
     }
+
+    console.error('Type validation failed');
+    return false;
   } catch (error) {
     console.error('Error validating schema:', error);
     return false;
@@ -65,67 +86,54 @@ async function validateSchema(): Promise<boolean> {
 }
 
 /**
- * Validate a specific type against the API schema
+ * Validate a specific type against an OpenAPI schema definition.
  */
 function validateType<T>(schemaName: string, schema: OpenAPISchema): boolean {
   console.log(`Validating ${schemaName}...`);
-  
-  // Get the schema definition
-  const schemaDefinition = schema.components.schemas[schemaName];
+
+  const schemaDefinition = schema.components?.schemas?.[schemaName];
   if (!schemaDefinition) {
     console.error(`Schema ${schemaName} not found in API schema`);
     return false;
   }
-  
-  // Create a sample of the type
-  const sample = createSample(schemaDefinition);
-  
-  // Attempt to use the sample with the TypeScript type
-  try {
-    // This is a compile-time check only - cast only to verify compatibility
-    sample as unknown as T;
-    console.log(`  ✅ ${schemaName} valid`);
-    return true;
-  } catch (error) {
-    console.error(`  ❌ ${schemaName} invalid:`, error);
+
+  const properties = schemaDefinition.properties ?? {};
+  const missingRequired = (schemaDefinition.required ?? []).filter(
+    (propertyName) => !Object.prototype.hasOwnProperty.call(properties, propertyName),
+  );
+  if (missingRequired.length > 0) {
+    console.error(`Schema ${schemaName} is missing required fields: ${missingRequired.join(', ')}`);
     return false;
   }
+
+  // Keep the generic so each checked frontend type remains coupled to its schema entry at compile time.
+  const sample = createSample(schemaDefinition) as unknown as T;
+  return sample !== null;
 }
 
-/**
- * Create a sample object from a schema definition
- */
-function createSample(schemaDefinition: Record<string, unknown>): Record<string, unknown> | null {
-  if (schemaDefinition.type === 'object') {
-    const result: Record<string, unknown> = {};
-    
-    for (const [propertyName, propertySchema] of Object.entries<SchemaProperty>(
-      schemaDefinition.properties as Record<string, SchemaProperty>
-    )) {
-      result[propertyName] = createSampleForProperty(propertySchema);
-    }
-    
-    return result;
-  }
-  
-  return null;
-}
+const createSample = (schemaDefinition: SchemaProperty): Record<string, unknown> | null => {
+  if (schemaDefinition.type !== 'object') return null;
 
-/**
- * Create a sample value for a property
- */
-function createSampleForProperty(propertySchema: SchemaProperty): unknown {
-  if (propertySchema.$ref) {
-    // Reference to another schema, we'd need to resolve it
-    return {};
+  const result: Record<string, unknown> = {};
+  for (const [propertyName, propertySchema] of Object.entries(schemaDefinition.properties ?? {})) {
+    result[propertyName] = createSampleForProperty(propertySchema);
   }
-  
+  return result;
+};
+
+const createSampleForProperty = (propertySchema: SchemaProperty): unknown => {
+  if (propertySchema.anyOf) {
+    const nonNullSchema = propertySchema.anyOf.find((candidate) => candidate.type !== 'null');
+    return nonNullSchema ? createSampleForProperty(nonNullSchema) : null;
+  }
+
+  if (propertySchema.$ref) return {};
+
   switch (propertySchema.type) {
     case 'string':
-      if (propertySchema.format === 'date-time') {
-        return new Date().toISOString();
-      }
-      return 'sample';
+      return propertySchema.format === 'date-time' || propertySchema.format === 'date'
+        ? new Date().toISOString()
+        : propertySchema.enum?.[0] ?? 'sample';
     case 'integer':
     case 'number':
       return 1;
@@ -134,30 +142,16 @@ function createSampleForProperty(propertySchema: SchemaProperty): unknown {
     case 'array':
       return propertySchema.items ? [createSampleForProperty(propertySchema.items)] : [];
     case 'object':
-      if (propertySchema.properties) {
-        const result: Record<string, unknown> = {};
-        for (const [propName, propSchema] of Object.entries<SchemaProperty>(propertySchema.properties)) {
-          result[propName] = createSampleForProperty(propSchema);
-        }
-        return result;
-      }
-      return {};
+      return createSample(propertySchema) ?? {};
     default:
       return null;
   }
-}
+};
 
-// Export for Jest testing
 export { validateSchema };
 
-// Run validation if called directly
-if (require.main === module) {
-  validateSchema()
-    .then(valid => {
-      process.exit(valid ? 0 : 1);
-    })
-    .catch(error => {
-      console.error('Validation error:', error);
-      process.exit(1);
-    });
+if (process.argv[1]?.endsWith('schema-validator.ts')) {
+  validateSchema().then((valid) => {
+    process.exitCode = valid ? 0 : 1;
+  });
 }

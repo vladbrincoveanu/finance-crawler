@@ -1,6 +1,7 @@
 import axios from 'axios';
 import {
   Company,
+  CrawlSourceStatus,
   CuratedHolding,
   Idea,
   IdeaDetail,
@@ -102,6 +103,13 @@ export const usersApi = {
 export const holdingsApi = {
   getHoldings: async (params: ListParams = {}): Promise<CuratedHolding[]> => {
     const response = await apiClient.get('/holdings/', { params });
+    return response.data;
+  },
+};
+
+export const crawlApi = {
+  getStatus: async (): Promise<CrawlSourceStatus[]> => {
+    const response = await apiClient.get('/crawl/status');
     return response.data;
   },
 };
