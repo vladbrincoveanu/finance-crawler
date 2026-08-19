@@ -5,6 +5,7 @@ import {
   Heading,
   Text,
   Button,
+  Link,
   SimpleGrid,
   Stack,
   useColorModeValue,
@@ -39,6 +40,18 @@ const HomePage: React.FC = () => {
             View Companies
           </Button>
         </Stack>
+        <Link
+          href="http://localhost:3001/d/vic-ingestion"
+          isExternal
+          display="inline-block"
+          mt={5}
+          color={useColorModeValue('blue.700', 'blue.200')}
+          fontWeight="600"
+          textDecoration="underline"
+          _hover={{ color: useColorModeValue('blue.800', 'blue.100') }}
+        >
+          Open ingestion telemetry
+        </Link>
       </Box>
 
       {/* Features Section */}
