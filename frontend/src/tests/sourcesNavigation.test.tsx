@@ -78,6 +78,7 @@ describe('source verification route and navigation', () => {
 
     expect(toggle).toHaveAttribute('aria-expanded', 'false');
     expect(mobileNavigation).toHaveAttribute('aria-hidden', 'true');
+    expect(mobileNavigation).toHaveAttribute('hidden');
     expect(toggle).toHaveFocus();
   });
 });

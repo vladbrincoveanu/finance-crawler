@@ -109,6 +109,7 @@ const Layout: React.FC = () => {
           role="navigation"
           aria-label="Mobile navigation"
           aria-hidden={!isOpen}
+          hidden={!isOpen}
           in={isOpen}
           animateOpacity
         >
