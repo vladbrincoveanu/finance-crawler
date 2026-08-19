@@ -49,7 +49,7 @@ const CuratedHoldingsTable: React.FC<CuratedHoldingsTableProps> = ({
 
   if (isError) {
     return (
-      <Alert status="error" borderRadius="16px" bg="red.950" color="red.100">
+      <Alert status="error" borderRadius="16px" bg="red.900" color="red.100">
         <AlertIcon />
         {error instanceof Error ? error.message : 'Unable to load curated holdings.'}
       </Alert>
@@ -109,15 +109,15 @@ const CuratedHoldingsTable: React.FC<CuratedHoldingsTableProps> = ({
                 </Td>
                 <Td px={4} py={4} color="white" fontWeight="600">{holding.investor_name}</Td>
                 <Td px={4} py={4} color="whiteAlpha.700">{holding.portfolio_manager_name ?? '—'}</Td>
-                <Td px={4} py={4} color="whiteAlpha.850">{holding.company_name}</Td>
+                <Td px={4} py={4} color="whiteAlpha.800">{holding.company_name}</Td>
                 <Td px={4} py={4}>
                   <Text color="amber.200" fontWeight="700">{holding.ticker}</Text>
                 </Td>
                 <Td px={4} py={4} color="whiteAlpha.700" whiteSpace="nowrap">{holding.period}</Td>
-                <Td px={4} py={4} color={holding.source_activity ? 'whiteAlpha.850' : 'whiteAlpha.500'}>{holding.source_activity ?? 'Unknown'}</Td>
-                <Td px={4} py={4} isNumeric color="whiteAlpha.850">{formatNumber(holding.shares)}</Td>
-                <Td px={4} py={4} isNumeric color="whiteAlpha.850" whiteSpace="nowrap">{formatNumber(holding.value_usd, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })}</Td>
-                <Td px={4} py={4} isNumeric color="whiteAlpha.850">{formatNumber(holding.pct_portfolio, { maximumFractionDigits: 2 })}{holding.pct_portfolio === null ? '' : '%'}</Td>
+                <Td px={4} py={4} color={holding.source_activity ? 'whiteAlpha.800' : 'whiteAlpha.600'}>{holding.source_activity ?? 'Unknown'}</Td>
+                <Td px={4} py={4} isNumeric color="whiteAlpha.800">{formatNumber(holding.shares)}</Td>
+                <Td px={4} py={4} isNumeric color="whiteAlpha.800" whiteSpace="nowrap">{formatNumber(holding.value_usd, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })}</Td>
+                <Td px={4} py={4} isNumeric color="whiteAlpha.800">{formatNumber(holding.pct_portfolio, { maximumFractionDigits: 2 })}{holding.pct_portfolio === null ? '' : '%'}</Td>
                 <Td px={4} py={4}>
                   <Text fontSize="xs" color={holding.completeness === 'complete' ? 'green.300' : 'orange.300'} whiteSpace="nowrap">{coverage}</Text>
                 </Td>

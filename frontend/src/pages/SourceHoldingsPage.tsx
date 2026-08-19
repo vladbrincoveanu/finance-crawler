@@ -49,7 +49,7 @@ const SourceHoldingsPage: React.FC<SourceHoldingsPageProps> = ({ source }) => {
     <Box>
       <Flex justify="space-between" align={{ base: 'flex-start', md: 'center' }} gap={4} mb={8} direction={{ base: 'column', md: 'row' }}>
         <Box>
-          <Text color="whiteAlpha.500" fontSize="xs" letterSpacing="0.2em" textTransform="uppercase">{copy.eyebrow}</Text>
+          <Text color="whiteAlpha.600" fontSize="xs" letterSpacing="0.2em" textTransform="uppercase">{copy.eyebrow}</Text>
           <Heading mt={3} fontSize={{ base: '3xl', md: '5xl' }} letterSpacing="-0.04em" color="white">{copy.label}</Heading>
           <Text mt={3} color="whiteAlpha.700" maxW="640px">{copy.description}</Text>
         </Box>
@@ -60,25 +60,25 @@ const SourceHoldingsPage: React.FC<SourceHoldingsPageProps> = ({ source }) => {
 
       <SimpleGrid columns={{ base: 1, sm: 3 }} spacing={4} mb={8}>
         <Stat bg="whiteAlpha.50" border="1px solid" borderColor="whiteAlpha.200" borderRadius="18px" p={5}>
-          <StatLabel color="whiteAlpha.500" textTransform="uppercase" letterSpacing="0.14em" fontSize="xs">Curated rows</StatLabel>
+          <StatLabel color="whiteAlpha.600" textTransform="uppercase" letterSpacing="0.14em" fontSize="xs">Curated rows</StatLabel>
           <StatNumber color={copy.color} mt={2}>{holdings.length}</StatNumber>
         </Stat>
         <Stat bg="whiteAlpha.50" border="1px solid" borderColor="whiteAlpha.200" borderRadius="18px" p={5}>
-          <StatLabel color="whiteAlpha.500" textTransform="uppercase" letterSpacing="0.14em" fontSize="xs">Observed value</StatLabel>
+          <StatLabel color="whiteAlpha.600" textTransform="uppercase" letterSpacing="0.14em" fontSize="xs">Observed value</StatLabel>
           <StatNumber color="white" mt={2} fontSize="2xl">{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: 'compact', maximumFractionDigits: 1 }).format(totalValue)}</StatNumber>
         </Stat>
         <Stat bg="whiteAlpha.50" border="1px solid" borderColor="whiteAlpha.200" borderRadius="18px" p={5}>
-          <StatLabel color="whiteAlpha.500" textTransform="uppercase" letterSpacing="0.14em" fontSize="xs">Latest period</StatLabel>
+          <StatLabel color="whiteAlpha.600" textTransform="uppercase" letterSpacing="0.14em" fontSize="xs">Latest period</StatLabel>
           <StatNumber color="white" mt={2} fontSize="2xl">{latestPeriod}</StatNumber>
         </Stat>
       </SimpleGrid>
 
       <HStack spacing={3} mb={4}>
         <Badge colorScheme={source === 'dataroma' ? 'orange' : 'purple'} borderRadius="full" px={3} py={1}>{source}</Badge>
-        <Text color="whiteAlpha.500" fontSize="sm">Public view · reviewed identities only</Text>
+        <Text color="whiteAlpha.600" fontSize="sm">Public view · reviewed identities only</Text>
       </HStack>
       <CuratedHoldingsTable holdings={holdings} isLoading={query.isLoading} isError={query.isError} error={query.error} />
-      <Text mt={4} color="whiteAlpha.400" fontSize="xs">Source links open the immutable evidence URL <ExternalLinkIcon mx="2px" /></Text>
+      <Text mt={4} color="whiteAlpha.600" fontSize="xs">Source links open the original source record <ExternalLinkIcon mx="2px" /></Text>
     </Box>
   );
 };

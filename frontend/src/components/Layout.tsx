@@ -16,7 +16,7 @@ import {
 import { HamburgerIcon, CloseIcon } from '@chakra-ui/icons';
 
 const Layout: React.FC = () => {
-  const { isOpen, onToggle } = useDisclosure();
+  const { isOpen, onToggle, onClose } = useDisclosure();
 
   // Define common theme values
   const bgColor = 'rgba(7, 11, 20, 0.88)';
@@ -49,29 +49,32 @@ const Layout: React.FC = () => {
           <Flex
             flex={{ base: 1, md: 'auto' }}
             ml={{ base: -2 }}
-            display={{ base: 'flex', md: 'none' }}
+            display={{ base: 'flex', lg: 'none' }}
           >
             <IconButton
               onClick={onToggle}
               icon={isOpen ? <CloseIcon w={3} h={3} /> : <HamburgerIcon w={5} h={5} />}
               variant="ghost"
               aria-label="Toggle Navigation"
+              aria-expanded={isOpen}
+              aria-controls="mobile-navigation"
             />
           </Flex>
           <Flex flex={{ base: 1 }} justify={{ base: 'center', md: 'start' }}>
             <Text
-              textAlign={useBreakpointValue({ base: 'center', md: 'left' })}
+              textAlign={useBreakpointValue({ base: 'center', lg: 'left' })}
               fontFamily="heading"
               color="white"
               fontWeight="bold"
               fontSize="xl"
               as={RouterLink}
               to="/"
+              onClick={onClose}
             >
               VIC / FIELD NOTES
             </Text>
 
-            <Flex display={{ base: 'none', md: 'flex' }} ml={10}>
+            <Flex display={{ base: 'none', lg: 'flex' }} ml={10}>
               <DesktopNav />
             </Flex>
           </Flex>
@@ -88,14 +91,15 @@ const Layout: React.FC = () => {
               fontWeight={400}
               variant="link"
               to="/about"
+              onClick={onClose}
             >
               About
             </Button>
           </Stack>
         </Flex>
 
-        <Collapse in={isOpen} animateOpacity>
-          <MobileNav />
+        <Collapse id="mobile-navigation" in={isOpen} animateOpacity>
+          <MobileNav onClose={onClose} />
         </Collapse>
       </Box>
 
@@ -157,27 +161,28 @@ const DesktopNav = () => {
   );
 };
 
-const MobileNav = () => {
+const MobileNav = ({ onClose }: { onClose: () => void }) => {
   return (
     <Stack
       bg="ink.900"
       p={4}
-      display={{ md: 'none' }}
+      display={{ lg: 'none' }}
     >
       {NAV_ITEMS.map((navItem) => (
-        <MobileNavItem key={navItem.label} {...navItem} />
+        <MobileNavItem key={navItem.label} {...navItem} onClose={onClose} />
       ))}
     </Stack>
   );
 };
 
-const MobileNavItem = ({ label, href }: NavItem) => {
+const MobileNavItem = ({ label, href, onClose }: NavItem & { onClose: () => void }) => {
   return (
     <Stack spacing={4}>
       <Flex
         py={2}
         as={RouterLink}
         to={href ?? '#'}
+        onClick={onClose}
         justify="space-between"
         align="center"
         _hover={{
@@ -228,6 +233,10 @@ const NAV_ITEMS: Array<NavItem> = [
   {
     label: 'HedgeFollow',
     href: '/holdings/hedgefollow',
+  },
+  {
+    label: 'Sources',
+    href: '/sources',
   },
 ];
 

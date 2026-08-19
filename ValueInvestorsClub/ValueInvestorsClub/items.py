@@ -31,6 +31,7 @@ import scrapy
 class ValueinvestorsclubItem(scrapy.Item):
     
     link = scrapy.Field()
+    parse_error = scrapy.Field()
     # This is the ticker symbol of the company
     ticker = scrapy.Field()
     # This is the name of the company

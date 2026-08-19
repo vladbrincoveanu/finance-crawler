@@ -47,6 +47,57 @@ export interface CuratedHolding {
   source_url: string;
 }
 
+export type CrawlStatus = 'running' | 'complete' | 'partial' | 'failed';
+
+export interface CrawlRun {
+  id: string | null;
+  source: string | null;
+  target: string | null;
+  status: CrawlStatus | null;
+  parser_version: string | null;
+  started_at: string | null;
+  finished_at: string | null;
+  rows_seen: number;
+  rows_accepted: number;
+  rows_rejected: number;
+  rows_duplicate: number;
+  error_message: string | null;
+}
+
+export interface CrawlCounts {
+  parser_output: number;
+  staged: number;
+  pending_identity: number;
+  curated: number;
+  public: number;
+}
+
+export interface CrawlSample {
+  kind: 'holding' | 'idea';
+  investor_name?: string | null;
+  ticker?: string | null;
+  company_name?: string | null;
+  period?: string | null;
+  idea_date?: string | null;
+  shares?: number | null;
+  value_usd?: number | null;
+  pct_portfolio?: number | null;
+  activity?: string | null;
+  identity_status?: string | null;
+  source_url: string | null;
+  link?: string | null;
+}
+
+export interface CrawlSourceStatus {
+  source: string;
+  label: string;
+  target: string;
+  public_route: string;
+  latest_run: CrawlRun;
+  counts: CrawlCounts;
+  sample: CrawlSample | null;
+}
+
 export interface IdentityCandidate {
   id: string;
   entity_type: string;

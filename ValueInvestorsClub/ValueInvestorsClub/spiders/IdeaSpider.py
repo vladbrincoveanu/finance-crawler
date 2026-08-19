@@ -22,6 +22,8 @@ except ImportError:
 
 class IdeaSpider(scrapy.Spider):
     name = 'IdeaSpider'
+    source = "valueinvestorsclub"
+    parser_version = "idea-pipeline-v1"
     allowed_domains = ['valueinvestorsclub.com']
     login_url = "https://www.valueinvestorsclub.com/login"
 
@@ -434,7 +436,7 @@ class IdeaSpider(scrapy.Spider):
         photos = self._extract_photos(response)
         date_iso = self._date_iso(date or "")
 
-        # If core fields are still missing, don't yield an item (pipeline would drop).
+        # Emit a rejection item so the ingestion run can count this parser outcome.
         if not company_name or not company_ticker or not date:
             self.logger.warning(
                 "Skipping page missing core fields: url=%s ticker=%r company=%r date=%r",
@@ -442,6 +444,19 @@ class IdeaSpider(scrapy.Spider):
                 company_ticker,
                 company_name,
                 date,
+            )
+            missing = [
+                name
+                for name, value in (
+                    ("companyName", company_name),
+                    ("ticker", company_ticker),
+                    ("date", date),
+                )
+                if not value
+            ]
+            yield ValueinvestorsclubItem(
+                link=link,
+                parse_error=f"missing core fields: {', '.join(missing)}",
             )
             return
         # check if this is a short position. a span with class "label label-short" signifies it.

@@ -2,6 +2,7 @@ from pathlib import Path
 
 from scrapy.http import HtmlResponse
 
+from ValueInvestorsClub.ValueInvestorsClub.items import ValueinvestorsclubItem
 from ValueInvestorsClub.ValueInvestorsClub.spiders.IdeaSpider import IdeaSpider
 
 FIXTURES = Path(__file__).resolve().parents[1] / "fixtures" / "idea"
@@ -52,3 +53,19 @@ def test_parse_extracts_comments():
     authors = {c["author"] for c in item["comments"]}
     assert authors == {"johnsmith", "janedoe"}
     assert "great writeup" in item["messages"]
+
+
+def test_parse_emits_rejection_item_when_core_fields_are_missing():
+    spider = IdeaSpider()
+    response = HtmlResponse(
+        url="https://www.valueinvestorsclub.com/idea/Unknown/4",
+        body=b"<html><head><title>Value Investors Club</title></head><body></body></html>",
+        encoding="utf-8",
+    )
+
+    items = list(spider.parse(response))
+
+    assert len(items) == 1
+    assert isinstance(items[0], ValueinvestorsclubItem)
+    assert items[0]["parse_error"].startswith("missing core fields:")
+    assert items[0]["link"] == response.url

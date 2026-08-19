@@ -88,3 +88,20 @@ _Avoid_: allowing an LLM to merge entities without approval.
 - Source coverage may not provide a stable exchange/security identifier for every ticker. Such records require a review status rather than automatic Company/Security assignment.
 - **Investor** now means canonical reviewed entity; source-specific rows must be called **Source investor records**.
 - **Event** means derived historical transition; source strings such as `Buy`, `Add`, and `Reduce` are source activity values.
+
+## Crawl verification language
+
+**Crawl run**:
+One bounded source execution whose parser and ingestion outcomes are evaluated together. A crawl run ends independently of identity promotion; pending mappings must not be mistaken for parser failure.
+
+**Parser output**:
+A source record emitted into the ingestion pipeline, including newly accepted, rejected, and duplicate records. Records skipped before emission are not parser output.
+
+**Staged holding**:
+A validated source holding observation retained for identity review and excluded from curated public views until its source investor and security mappings are approved.
+
+**Source URL**:
+The URL associated with an observed source record and useful for provenance navigation. A Source URL is not automatically Source evidence.
+
+**Source evidence**:
+Immutable fetched content and fetch metadata persisted for a source record. A URL may point to evidence, but it must not be described as immutable evidence unless the fetched document and fetch metadata are retained.

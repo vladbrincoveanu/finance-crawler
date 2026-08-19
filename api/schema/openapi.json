@@ -6,11 +6,59 @@
     "version": "1.0.0"
   },
   "paths": {
+    "/health/live": {
+      "get": {
+        "summary": "Health Live",
+        "operationId": "health_live_health_live_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health/ready": {
+      "get": {
+        "summary": "Health Ready",
+        "operationId": "health_ready_health_ready_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
     "/health": {
       "get": {
         "summary": "Health Check",
         "description": "Health check endpoint.\nReturns a simple response indicating that the API is healthy.",
         "operationId": "health_check_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/metrics": {
+      "get": {
+        "summary": "Prometheus Metrics",
+        "operationId": "prometheus_metrics_metrics_get",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -533,6 +581,45 @@
         }
       }
     },
+    "/companies/{curated_company_id}": {
+      "get": {
+        "summary": "Get Curated Company",
+        "operationId": "get_curated_company_companies__curated_company_id__get",
+        "parameters": [
+          {
+            "name": "curated_company_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Curated Company Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CuratedCompanyDetailResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/users/": {
       "get": {
         "summary": "Get Users",
@@ -605,6 +692,683 @@
           }
         }
       }
+    },
+    "/holdings/": {
+      "get": {
+        "summary": "Get Holdings",
+        "operationId": "get_holdings_holdings__get",
+        "parameters": [
+          {
+            "name": "source",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Source"
+            }
+          },
+          {
+            "name": "investor_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Investor Id"
+            }
+          },
+          {
+            "name": "company_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Company Id"
+            }
+          },
+          {
+            "name": "security_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Security Id"
+            }
+          },
+          {
+            "name": "period_start",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Period Start"
+            }
+          },
+          {
+            "name": "period_end",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Period End"
+            }
+          },
+          {
+            "name": "skip",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Skip"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000,
+              "minimum": 0,
+              "default": 100,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CuratedHoldingResponse"
+                  },
+                  "title": "Response Get Holdings Holdings  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/holdings/legacy/": {
+      "get": {
+        "summary": "Get Legacy Holdings",
+        "operationId": "get_legacy_holdings_holdings_legacy__get",
+        "parameters": [
+          {
+            "name": "skip",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Skip"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000,
+              "minimum": 0,
+              "default": 100,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/HoldingResponse"
+                  },
+                  "title": "Response Get Legacy Holdings Holdings Legacy  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/review/identity": {
+      "get": {
+        "summary": "Get Identity Review Queue",
+        "operationId": "get_identity_review_queue_review_identity_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "name": "X-Review-Admin-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Review-Admin-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/IdentityCandidateResponse"
+                  },
+                  "title": "Response Get Identity Review Queue Review Identity Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/review/identity/{candidate_id}/decision": {
+      "post": {
+        "summary": "Decide Identity",
+        "operationId": "decide_identity_review_identity__candidate_id__decision_post",
+        "parameters": [
+          {
+            "name": "candidate_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Candidate Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "name": "X-Review-Admin-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Review-Admin-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IdentityDecisionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IdentityDecisionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/review/quarantine": {
+      "get": {
+        "summary": "Get Quarantine Queue",
+        "operationId": "get_quarantine_queue_review_quarantine_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "name": "X-Review-Admin-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Review-Admin-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/QuarantineResponse"
+                  },
+                  "title": "Response Get Quarantine Queue Review Quarantine Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/review/quarantine/{record_id}/reprocess": {
+      "post": {
+        "summary": "Reprocess Quarantine",
+        "operationId": "reprocess_quarantine_review_quarantine__record_id__reprocess_post",
+        "parameters": [
+          {
+            "name": "record_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Record Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "name": "X-Review-Admin-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Review-Admin-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuarantineResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/investors/{curated_investor_id}": {
+      "get": {
+        "summary": "Get Curated Investor",
+        "operationId": "get_curated_investor_investors__curated_investor_id__get",
+        "parameters": [
+          {
+            "name": "curated_investor_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Curated Investor Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CuratedInvestorDetailResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/search": {
+      "get": {
+        "summary": "Search",
+        "operationId": "search_search_get",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "title": "Q"
+            }
+          },
+          {
+            "name": "company_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Company Id"
+            }
+          },
+          {
+            "name": "security_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Security Id"
+            }
+          },
+          {
+            "name": "investor_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Investor Id"
+            }
+          },
+          {
+            "name": "source",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Source"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 50,
+              "minimum": 1,
+              "default": 10,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SearchResultResponse"
+                  },
+                  "title": "Response Search Search Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/crawl/status": {
+      "get": {
+        "summary": "Get Crawl Status",
+        "operationId": "get_crawl_status_crawl_status_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CrawlSourceStatusResponse"
+                  },
+                  "type": "array",
+                  "title": "Response Get Crawl Status Crawl Status Get"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -642,6 +1406,706 @@
         "title": "CompanyResponse",
         "description": "Company information."
       },
+      "CrawlCountsResponse": {
+        "properties": {
+          "parser_output": {
+            "type": "integer",
+            "title": "Parser Output"
+          },
+          "staged": {
+            "type": "integer",
+            "title": "Staged"
+          },
+          "pending_identity": {
+            "type": "integer",
+            "title": "Pending Identity"
+          },
+          "curated": {
+            "type": "integer",
+            "title": "Curated"
+          },
+          "public": {
+            "type": "integer",
+            "title": "Public"
+          }
+        },
+        "type": "object",
+        "required": [
+          "parser_output",
+          "staged",
+          "pending_identity",
+          "curated",
+          "public"
+        ],
+        "title": "CrawlCountsResponse",
+        "description": "Run output counts plus current public totals when a run exists."
+      },
+      "CrawlHoldingSampleResponse": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "const": "holding",
+            "title": "Kind"
+          },
+          "investor_name": {
+            "type": "string",
+            "title": "Investor Name"
+          },
+          "ticker": {
+            "type": "string",
+            "title": "Ticker"
+          },
+          "company_name": {
+            "type": "string",
+            "title": "Company Name"
+          },
+          "period": {
+            "type": "string",
+            "format": "date",
+            "title": "Period"
+          },
+          "shares": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shares"
+          },
+          "value_usd": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value Usd"
+          },
+          "pct_portfolio": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pct Portfolio"
+          },
+          "activity": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Activity"
+          },
+          "identity_status": {
+            "type": "string",
+            "title": "Identity Status"
+          },
+          "source_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "investor_name",
+          "ticker",
+          "company_name",
+          "period",
+          "identity_status",
+          "source_url"
+        ],
+        "title": "CrawlHoldingSampleResponse"
+      },
+      "CrawlIdeaSampleResponse": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "const": "idea",
+            "title": "Kind"
+          },
+          "ticker": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ticker"
+          },
+          "company_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Company Name"
+          },
+          "idea_date": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Idea Date"
+          },
+          "source_url": {
+            "type": "string",
+            "title": "Source Url"
+          },
+          "link": {
+            "type": "string",
+            "title": "Link"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "idea_date",
+          "source_url",
+          "link"
+        ],
+        "title": "CrawlIdeaSampleResponse"
+      },
+      "CrawlRunResponse": {
+        "properties": {
+          "id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source"
+          },
+          "target": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "running",
+                  "complete",
+                  "partial",
+                  "failed"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          },
+          "parser_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parser Version"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "rows_seen": {
+            "type": "integer",
+            "title": "Rows Seen"
+          },
+          "rows_accepted": {
+            "type": "integer",
+            "title": "Rows Accepted"
+          },
+          "rows_rejected": {
+            "type": "integer",
+            "title": "Rows Rejected"
+          },
+          "rows_duplicate": {
+            "type": "integer",
+            "title": "Rows Duplicate"
+          },
+          "error_message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "source",
+          "target",
+          "status",
+          "parser_version",
+          "started_at",
+          "finished_at",
+          "rows_seen",
+          "rows_accepted",
+          "rows_rejected",
+          "rows_duplicate",
+          "error_message"
+        ],
+        "title": "CrawlRunResponse",
+        "description": "The selected run, or an explicit empty run when none exists."
+      },
+      "CrawlSourceStatusResponse": {
+        "properties": {
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "target": {
+            "type": "string",
+            "title": "Target"
+          },
+          "public_route": {
+            "type": "string",
+            "title": "Public Route"
+          },
+          "latest_run": {
+            "$ref": "#/components/schemas/CrawlRunResponse"
+          },
+          "counts": {
+            "$ref": "#/components/schemas/CrawlCountsResponse"
+          },
+          "sample": {
+            "anyOf": [
+              {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/CrawlHoldingSampleResponse"
+                  },
+                  {
+                    "$ref": "#/components/schemas/CrawlIdeaSampleResponse"
+                  }
+                ],
+                "discriminator": {
+                  "propertyName": "kind",
+                  "mapping": {
+                    "holding": "#/components/schemas/CrawlHoldingSampleResponse",
+                    "idea": "#/components/schemas/CrawlIdeaSampleResponse"
+                  }
+                }
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sample"
+          }
+        },
+        "type": "object",
+        "required": [
+          "source",
+          "label",
+          "target",
+          "public_route",
+          "latest_run",
+          "counts",
+          "sample"
+        ],
+        "title": "CrawlSourceStatusResponse"
+      },
+      "CuratedAliasResponse": {
+        "properties": {
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "source_key": {
+            "type": "string",
+            "title": "Source Key"
+          }
+        },
+        "type": "object",
+        "required": [
+          "source",
+          "source_key"
+        ],
+        "title": "CuratedAliasResponse"
+      },
+      "CuratedCompanyDetailResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "display_name": {
+            "type": "string",
+            "title": "Display Name"
+          },
+          "normalized_name": {
+            "type": "string",
+            "title": "Normalized Name"
+          },
+          "securities": {
+            "items": {
+              "$ref": "#/components/schemas/CuratedSecurityResponse"
+            },
+            "type": "array",
+            "title": "Securities"
+          },
+          "holdings": {
+            "items": {
+              "$ref": "#/components/schemas/CuratedHoldingResponse"
+            },
+            "type": "array",
+            "title": "Holdings"
+          },
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/CuratedEventResponse"
+            },
+            "type": "array",
+            "title": "Events"
+          },
+          "source_links": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Source Links"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "display_name",
+          "normalized_name",
+          "securities",
+          "holdings",
+          "events",
+          "source_links"
+        ],
+        "title": "CuratedCompanyDetailResponse"
+      },
+      "CuratedEventResponse": {
+        "properties": {
+          "period": {
+            "type": "string",
+            "format": "date",
+            "title": "Period"
+          },
+          "event_type": {
+            "type": "string",
+            "title": "Event Type"
+          },
+          "confidence": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confidence"
+          },
+          "evidence_snapshot_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Evidence Snapshot Ids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "period",
+          "event_type",
+          "evidence_snapshot_ids"
+        ],
+        "title": "CuratedEventResponse"
+      },
+      "CuratedHoldingResponse": {
+        "properties": {
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "investor_id": {
+            "type": "string",
+            "title": "Investor Id"
+          },
+          "investor_name": {
+            "type": "string",
+            "title": "Investor Name"
+          },
+          "portfolio_manager_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Portfolio Manager Name"
+          },
+          "company_id": {
+            "type": "string",
+            "title": "Company Id"
+          },
+          "company_name": {
+            "type": "string",
+            "title": "Company Name"
+          },
+          "security_id": {
+            "type": "string",
+            "title": "Security Id"
+          },
+          "ticker": {
+            "type": "string",
+            "title": "Ticker"
+          },
+          "period": {
+            "type": "string",
+            "format": "date",
+            "title": "Period"
+          },
+          "shares": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shares"
+          },
+          "value_usd": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value Usd"
+          },
+          "pct_portfolio": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pct Portfolio"
+          },
+          "source_activity": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Activity"
+          },
+          "completeness": {
+            "type": "string",
+            "title": "Completeness"
+          },
+          "source_url": {
+            "type": "string",
+            "title": "Source Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "source",
+          "investor_id",
+          "investor_name",
+          "company_id",
+          "company_name",
+          "security_id",
+          "ticker",
+          "period",
+          "completeness",
+          "source_url"
+        ],
+        "title": "CuratedHoldingResponse"
+      },
+      "CuratedInvestorDetailResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "display_name": {
+            "type": "string",
+            "title": "Display Name"
+          },
+          "normalized_name": {
+            "type": "string",
+            "title": "Normalized Name"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "portfolio_managers": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Portfolio Managers"
+          },
+          "aliases": {
+            "items": {
+              "$ref": "#/components/schemas/CuratedAliasResponse"
+            },
+            "type": "array",
+            "title": "Aliases"
+          },
+          "holdings": {
+            "items": {
+              "$ref": "#/components/schemas/CuratedHoldingResponse"
+            },
+            "type": "array",
+            "title": "Holdings"
+          },
+          "coverage": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Coverage"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "display_name",
+          "normalized_name",
+          "status",
+          "portfolio_managers",
+          "aliases",
+          "holdings",
+          "coverage"
+        ],
+        "title": "CuratedInvestorDetailResponse"
+      },
+      "CuratedSecurityResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "ticker": {
+            "type": "string",
+            "title": "Ticker"
+          },
+          "exchange": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Exchange"
+          },
+          "share_class": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Share Class"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "ticker"
+        ],
+        "title": "CuratedSecurityResponse"
+      },
       "DescriptionResponse": {
         "properties": {
           "description": {
@@ -668,6 +2132,56 @@
         },
         "type": "object",
         "title": "HTTPValidationError"
+      },
+      "HoldingResponse": {
+        "properties": {
+          "investor_name": {
+            "type": "string",
+            "title": "Investor Name"
+          },
+          "ticker": {
+            "type": "string",
+            "title": "Ticker"
+          },
+          "company_name": {
+            "type": "string",
+            "title": "Company Name"
+          },
+          "quarter_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Quarter Date"
+          },
+          "shares": {
+            "type": "integer",
+            "title": "Shares"
+          },
+          "value_usd": {
+            "type": "number",
+            "title": "Value Usd"
+          },
+          "pct_portfolio": {
+            "type": "number",
+            "title": "Pct Portfolio"
+          },
+          "activity": {
+            "type": "string",
+            "title": "Activity"
+          }
+        },
+        "type": "object",
+        "required": [
+          "investor_name",
+          "ticker",
+          "company_name",
+          "quarter_date",
+          "shares",
+          "value_usd",
+          "pct_portfolio",
+          "activity"
+        ],
+        "title": "HoldingResponse",
+        "description": "A single investor holding in a company for a given quarter."
       },
       "IdeaDetailResponse": {
         "properties": {
@@ -822,6 +2336,176 @@
         ],
         "title": "IdeaResponse",
         "description": "Basic information about an investment idea."
+      },
+      "IdentityCandidateResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "entity_type": {
+            "type": "string",
+            "title": "Entity Type"
+          },
+          "source_record_id": {
+            "type": "string",
+            "title": "Source Record Id"
+          },
+          "candidate_entity_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Candidate Entity Id"
+          },
+          "deterministic_score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deterministic Score"
+          },
+          "model_score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Score"
+          },
+          "evidence_json": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evidence Json"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "entity_type",
+          "source_record_id",
+          "status"
+        ],
+        "title": "IdentityCandidateResponse"
+      },
+      "IdentityDecisionRequest": {
+        "properties": {
+          "decision": {
+            "type": "string",
+            "enum": [
+              "approve",
+              "reject",
+              "defer",
+              "create_new"
+            ],
+            "title": "Decision"
+          },
+          "curated_entity_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Curated Entity Id"
+          },
+          "reviewer_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewer Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "decision"
+        ],
+        "title": "IdentityDecisionRequest"
+      },
+      "IdentityDecisionResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "candidate_id": {
+            "type": "string",
+            "title": "Candidate Id"
+          },
+          "entity_type": {
+            "type": "string",
+            "title": "Entity Type"
+          },
+          "decision": {
+            "type": "string",
+            "title": "Decision"
+          },
+          "curated_entity_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Curated Entity Id"
+          },
+          "reviewer_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewer Id"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "candidate_id",
+          "entity_type",
+          "decision",
+          "created_at"
+        ],
+        "title": "IdentityDecisionResponse"
       },
       "PerformanceResponse": {
         "properties": {
@@ -993,6 +2677,134 @@
         "title": "PerformanceResponse",
         "description": "Performance metrics for an investment idea."
       },
+      "QuarantineResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "run_id": {
+            "type": "string",
+            "title": "Run Id"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "record_type": {
+            "type": "string",
+            "title": "Record Type"
+          },
+          "source_record_id": {
+            "type": "string",
+            "title": "Source Record Id"
+          },
+          "reason_code": {
+            "type": "string",
+            "title": "Reason Code"
+          },
+          "reason_detail": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason Detail"
+          },
+          "raw_payload": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Raw Payload"
+          },
+          "review_status": {
+            "type": "string",
+            "title": "Review Status"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "reviewed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewed At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "run_id",
+          "source",
+          "record_type",
+          "source_record_id",
+          "reason_code",
+          "review_status",
+          "created_at"
+        ],
+        "title": "QuarantineResponse"
+      },
+      "SearchResultResponse": {
+        "properties": {
+          "chunk_id": {
+            "type": "string",
+            "title": "Chunk Id"
+          },
+          "section_type": {
+            "type": "string",
+            "title": "Section Type"
+          },
+          "content": {
+            "type": "string",
+            "title": "Content"
+          },
+          "citation_urls": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Citation Urls"
+          },
+          "source_snapshot_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Source Snapshot Ids"
+          },
+          "score": {
+            "type": "number",
+            "title": "Score"
+          }
+        },
+        "type": "object",
+        "required": [
+          "chunk_id",
+          "section_type",
+          "content",
+          "citation_urls",
+          "source_snapshot_ids",
+          "score"
+        ],
+        "title": "SearchResultResponse"
+      },
       "UserResponse": {
         "properties": {
           "username": {
@@ -1035,6 +2847,13 @@
           "type": {
             "type": "string",
             "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
           }
         },
         "type": "object",

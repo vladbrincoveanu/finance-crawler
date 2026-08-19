@@ -172,3 +172,57 @@ def test_repeated_portfolio_manager_observation_is_not_duplicated(
     )
 
     assert db_session.query(SourcePortfolioManager).count() == 1
+
+
+def test_record_item_result_counts_terminal_outcomes(service, run):
+    service.record_item_result(run.id, accepted=True)
+    service.record_item_result(
+        run.id, accepted=False, error_message="missing ticker"
+    )
+
+    finished = service.finish_run(run.id)
+
+    assert finished.rows_seen == 2
+    assert finished.rows_accepted == 1
+    assert finished.rows_rejected == 1
+    assert finished.rows_duplicate == 0
+    assert finished.status == "partial"
+    assert finished.error_message == "missing ticker"
+
+
+def test_empty_run_is_failed(service, run):
+    finished = service.finish_run(run.id)
+
+    assert finished.status == "failed"
+    assert finished.rows_seen == 0
+    assert finished.error_message == "no rows seen"
+
+
+def test_duplicate_only_run_is_complete(service, run):
+    service.record_item_result(run.id, accepted=False, duplicate=True)
+
+    finished = service.finish_run(run.id)
+
+    assert finished.rows_seen == 1
+    assert finished.rows_accepted == 0
+    assert finished.rows_rejected == 0
+    assert finished.rows_duplicate == 1
+    assert finished.status == "complete"
+
+
+def test_pending_identity_marks_run_partial_and_is_reported_separately(service, run):
+    service.stage(run, valid_observation())
+
+    finished = service.finish_run(run.id)
+
+    assert finished.status == "partial"
+    assert service.pending_identity_count(run.id) == 1
+
+
+def test_close_error_fails_run_and_preserves_error_message(service, run):
+    service.record_item_result(run.id, accepted=True)
+
+    finished = service.finish_run(run.id, error_message="spider close failed")
+
+    assert finished.status == "failed"
+    assert finished.error_message == "spider close failed"

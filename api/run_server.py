@@ -13,6 +13,6 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from api.main import app
 
 if __name__ == "__main__":
-    PORT = 8000  # Use standard port for frontend compatibility
+    PORT = 8010  # Use standard port for frontend compatibility
     print(f"Starting server on port {PORT}")
     uvicorn.run(app, host="0.0.0.0", port=PORT)

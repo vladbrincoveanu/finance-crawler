@@ -117,5 +117,5 @@ services:
       backend-tests:
         condition: service_completed_successfully
     environment:
-      - CYPRESS_baseUrl=http://api:8000
+      - CYPRESS_baseUrl=http://api:8010
     command: npm run test:e2e

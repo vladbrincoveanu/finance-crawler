@@ -12,7 +12,7 @@ BASE_URL = "http://localhost:"
 if len(sys.argv) > 1:
     BASE_URL += sys.argv[1]
 else:
-    BASE_URL += "8000"
+    BASE_URL += "8010"
 
 def pretty_print_json(data: Dict[str, Any]) -> None:
     """Pretty print JSON data"""

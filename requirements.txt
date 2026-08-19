@@ -1,6 +1,7 @@
 selenium
 pandas
 scrapy>=2.0.0
+scrapy-user-agents
 sqlalchemy>=2.0.0
 psycopg2-binary>=2.9.0
 pydantic>=2.0.0

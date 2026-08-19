@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from decimal import Decimal
 from typing import Any
 from uuid import uuid4
@@ -9,6 +9,7 @@ from sqlalchemy import (
     JSON,
     BigInteger,
     CheckConstraint,
+    Date,
     DateTime,
     ForeignKey,
     Integer,
@@ -137,6 +138,7 @@ class StagingHoldingSnapshot(Base):
     source_snapshot_id: Mapped[str] = mapped_column(
         ForeignKey("source_holding_snapshots.id"), nullable=False
     )
+    period: Mapped[date] = mapped_column(Date, nullable=False)
     shares: Mapped[int | None] = mapped_column(BigInteger)
     value_usd: Mapped[Decimal | None] = mapped_column(Numeric(20, 2))
     pct_portfolio: Mapped[Decimal | None] = mapped_column(Numeric(7, 4))

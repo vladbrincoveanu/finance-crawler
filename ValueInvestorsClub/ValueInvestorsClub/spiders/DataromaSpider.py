@@ -44,6 +44,8 @@ def _parse_activity(text: str) -> str:
 
 class DataromaSpider(scrapy.Spider):
     name = "DataromaSpider"
+    source = "dataroma"
+    parser_version = "dataroma-v1"
     allowed_domains = ["dataroma.com"]
     start_urls = ["https://www.dataroma.com/m/home.php"]
 
@@ -55,6 +57,13 @@ class DataromaSpider(scrapy.Spider):
         limit = int(os.getenv("DATAROMA_INVESTOR_LIMIT", "0"))
         requested_slug = (getattr(self, "investor_slug", "") or "").strip()
         links = response.xpath("//li/a[contains(@href, 'holdings.php?m=')]")
+        if requested_slug:
+            links = [
+                link
+                for link in links
+                if (link.xpath("./@href").get() or "").split("m=", 1)[-1]
+                == requested_slug
+            ]
         if limit > 0:
             links = links[:limit]
         for link in links:

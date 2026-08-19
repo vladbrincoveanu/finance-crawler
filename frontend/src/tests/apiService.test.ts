@@ -2,8 +2,8 @@
  * Tests for the API service layer
  */
 import axios from 'axios';
-import { ideasApi, companiesApi, usersApi, holdingsApi } from '../api/apiService';
-import { CuratedHolding, Idea, IdeaDetail, Company, User, ListParams } from '../types/api';
+import { crawlApi, ideasApi, companiesApi, usersApi, holdingsApi } from '../api/apiService';
+import { CrawlSourceStatus, CuratedHolding, Idea, IdeaDetail, Company, User, ListParams } from '../types/api';
 
 // Mock axios
 jest.mock('axios');
@@ -225,6 +225,23 @@ describe('holdingsApi', () => {
     const result = await holdingsApi.getHoldings(params);
 
     expect(mockedAxios.get).toHaveBeenCalledWith('/holdings/', { params });
+    expect(result).toEqual(mockData);
+  });
+});
+
+describe('crawlApi', () => {
+  beforeEach(() => {
+    jest.resetAllMocks();
+    mockedAxios.create.mockReturnValue(mockedAxios);
+  });
+
+  test('getStatus requests the bare three-source status array', async () => {
+    const mockData: CrawlSourceStatus[] = [];
+    mockedAxios.get.mockResolvedValueOnce({ data: mockData });
+
+    const result = await crawlApi.getStatus();
+
+    expect(mockedAxios.get).toHaveBeenCalledWith('/crawl/status');
     expect(result).toEqual(mockData);
   });
 });

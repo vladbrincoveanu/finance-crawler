@@ -40,6 +40,8 @@
 : "${VIC_USERNAME:=}"
 : "${VIC_PASSWORD:=}"
 : "${VIC_ENABLE_LOGIN:=false}"
+: "${VIC_SESSION_COOKIE:=}"
+: "${PIPELINE_MODE:=sql}"
 
 vic_check_db_ready() {
   if command -v pg_isready >/dev/null 2>&1; then
@@ -120,6 +122,7 @@ vic_run_scrapy() {
       -e VIC_USERNAME="$VIC_USERNAME" \
       -e VIC_PASSWORD="$VIC_PASSWORD" \
       -e VIC_ENABLE_LOGIN="$VIC_ENABLE_LOGIN" \
+      -e VIC_SESSION_COOKIE="$VIC_SESSION_COOKIE" \
       -e PIPELINE_MODE="$PIPELINE_MODE" \
       "$DOCKER_SERVICE" sh -lc "cd ValueInvestorsClub && scrapy crawl $spider_name"
   else

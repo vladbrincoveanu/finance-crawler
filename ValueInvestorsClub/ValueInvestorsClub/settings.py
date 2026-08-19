@@ -64,7 +64,7 @@ COOKIES_ENABLED = os.getenv("COOKIES_ENABLED", "true").lower() in {"1", "true", 
 DEFAULT_REQUEST_HEADERS = {
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
     "Accept-Language": "en-US,en;q=0.9",
-    "Accept-Encoding": "gzip, deflate, br",
+    "Accept-Encoding": "gzip, deflate",
     "DNT": "1",
     "Connection": "keep-alive",
     "Upgrade-Insecure-Requests": "1",
@@ -89,7 +89,7 @@ DEFAULT_REQUEST_HEADERS = {
 DOWNLOADER_MIDDLEWARES = {
     'scrapy.downloadermiddlewares.useragent.UserAgentMiddleware': None,
     'ValueInvestorsClub.middlewares.ModernUserAgentMiddleware': 400,
-    'ValueInvestorsClub.middlewares.BanAwareThrottleMiddleware': 543,
+    'ValueInvestorsClub.middlewares.BanAwareThrottleMiddleware': 560,
 }
 
 # Use modern user agent by default (set MODERN_USER_AGENT=false to use random old ones)

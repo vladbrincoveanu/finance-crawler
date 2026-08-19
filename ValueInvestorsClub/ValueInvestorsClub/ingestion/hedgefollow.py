@@ -10,9 +10,28 @@ from typing import Any, Iterable
 
 from ..holding_items import HoldingItem
 from .contracts import SourceHoldingObservation
+from .hedgefollow_transport import (
+    HedgeFollowResponseError,
+    build_formdata,
+    decode_response_payload,
+    make_id_params,
+)
 
 
 PARSER_VERSION = "hedgefollow-v1"
+__all__ = [
+    "PARSER_VERSION",
+    "FundIdentity",
+    "HedgeFollowResponseError",
+    "build_formdata",
+    "decode_response_payload",
+    "make_id_params",
+    "observation_to_item",
+    "parse_equity_payload",
+    "parse_fund_page",
+    "parse_history_payload",
+    "parse_holdings_payload",
+]
 
 
 @dataclass(frozen=True)
@@ -20,6 +39,7 @@ class FundIdentity:
     investor_key: str
     investor_name: str
     portfolio_manager_name: str | None
+    fund_id: str | None
     quarters: list[str]
     source_url: str
 
@@ -60,13 +80,35 @@ def parse_fund_page(html: str | bytes, *, url: str) -> FundIdentity:
     text = html.decode("utf-8", errors="replace") if isinstance(html, bytes) else html
     selector = Selector(text=text)
     summary = _text(" ".join(selector.css("table.fundSummary ::text").getall()))
-    investor_name = "Berkshire Hathaway" if "Berkshire Hathaway" in summary else summary
-    manager = "Warren Buffett" if "Warren Buffett" in summary else None
-    quarters = selector.css('select[data-id="quarter"] option::attr(value)').getall()
+    investor_name = ""
+    manager = None
+    for row in selector.css("table.fundSummary tr"):
+        labels = row.xpath("./th")
+        values = row.xpath("./td")
+        if len(labels) == 1 and values:
+            label = _text(labels[0].xpath("string()").get()).casefold()
+            value = _text(values[0].xpath("string()").get())
+            if label in {"fund", "hedge fund"}:
+                investor_name = value
+            elif label in {"manager", "portfolio manager"}:
+                manager = value or None
+        elif not investor_name and len(values) >= 2:
+            investor_name = _text(values[0].xpath("string()").get())
+            manager = _text(values[1].xpath("string()").get()) or None
+    if not investor_name:
+        investor_name = "Berkshire Hathaway" if "Berkshire Hathaway" in summary else summary
+    if not manager and "Warren Buffett" in summary:
+        manager = "Warren Buffett"
+    request_id = re.search(r"\brequestId\s*=\s*(\d+)", text)
+    fund_id = str(int(request_id.group(1)) // 3) if request_id else None
+    quarters = list(
+        dict.fromkeys(selector.css('select[data-id="quarter"] option::attr(value)').getall())
+    )
     return FundIdentity(
         investor_key=investor_name,
         investor_name=investor_name,
         portfolio_manager_name=manager,
+        fund_id=fund_id,
         quarters=quarters,
         source_url=url,
     )
@@ -80,6 +122,7 @@ def _parse_observations(
     source_url: str,
     include_options: bool,
     portfolio_manager_name: str | None = None,
+    document_hash: str | None = None,
 ) -> list[SourceHoldingObservation]:
     observations: list[SourceHoldingObservation] = []
     for row in _rows(payload):
@@ -122,7 +165,7 @@ def _parse_observations(
                 ),
                 source_url=source_url,
                 source_observation_key=f"hedgefollow:{fund_key}:{ticker}:{period.isoformat()}",
-                document_hash=row_hash,
+                document_hash=document_hash or row_hash,
                 raw_payload=row,
             )
         )
@@ -136,6 +179,7 @@ def parse_equity_payload(
     fund_name: str,
     source_url: str,
     portfolio_manager_name: str | None = None,
+    document_hash: str | None = None,
 ) -> list[SourceHoldingObservation]:
     return _parse_observations(
         payload,
@@ -144,6 +188,7 @@ def parse_equity_payload(
         source_url=source_url,
         include_options=False,
         portfolio_manager_name=portfolio_manager_name,
+        document_hash=document_hash,
     )
 
 
@@ -154,6 +199,7 @@ def parse_holdings_payload(
     fund_name: str,
     source_url: str,
     portfolio_manager_name: str | None = None,
+    document_hash: str | None = None,
 ) -> list[SourceHoldingObservation]:
     return parse_equity_payload(
         payload,
@@ -161,6 +207,7 @@ def parse_holdings_payload(
         fund_name=fund_name,
         source_url=source_url,
         portfolio_manager_name=portfolio_manager_name,
+        document_hash=document_hash,
     )
 
 
@@ -171,6 +218,7 @@ def parse_history_payload(
     fund_name: str,
     source_url: str,
     portfolio_manager_name: str | None = None,
+    document_hash: str | None = None,
 ) -> list[SourceHoldingObservation]:
     return _parse_observations(
         payload,
@@ -179,6 +227,7 @@ def parse_history_payload(
         source_url=source_url,
         include_options=False,
         portfolio_manager_name=portfolio_manager_name,
+        document_hash=document_hash,
     )
 
 

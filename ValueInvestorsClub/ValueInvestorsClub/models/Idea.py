@@ -16,6 +16,9 @@ class Idea(Base):
     link: Mapped[str] = mapped_column(String(256))
     company_id: Mapped[str] = mapped_column(ForeignKey("companies.ticker"))
     user_id: Mapped[str] = mapped_column(ForeignKey("users.user_link"))
+    ingestion_run_id: Mapped[str | None] = mapped_column(
+        ForeignKey("ingestion_runs.id"), nullable=True, index=True
+    )
     date: Mapped[DateTime] = mapped_column(DateTime)
     is_short : Mapped[bool] = mapped_column(Boolean)
     is_contest_winner : Mapped[bool] = mapped_column(Boolean)
@@ -36,4 +39,3 @@ class Idea(Base):
             f"date={self.date!r}, "
             f"isShort={self.is_short!r}, "
             f"isContestWinner={self.is_contest_winner!r})")
-

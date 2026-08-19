@@ -15,6 +15,8 @@ def _response(name: str, url: str) -> HtmlResponse:
 
 def test_parse_home_yields_one_request_per_investor():
     spider = DataromaSpider()
+    assert spider.source == "dataroma"
+    assert spider.parser_version == "dataroma-v1"
     response = _response("home.html", "https://www.dataroma.com/m/home.php")
 
     requests = list(spider.parse_home(response))
@@ -33,6 +35,18 @@ def test_parse_home_respects_investor_limit(monkeypatch):
     requests = list(spider.parse_home(response))
 
     assert len(requests) == 2
+
+
+def test_parse_home_filters_requested_slug_before_applying_limit(monkeypatch):
+    monkeypatch.setenv("DATAROMA_INVESTOR_LIMIT", "1")
+    spider = DataromaSpider()
+    spider.investor_slug = "BRK"
+    response = _response("home.html", "https://www.dataroma.com/m/home.php")
+
+    requests = list(spider.parse_home(response))
+
+    assert len(requests) == 1
+    assert requests[0].meta["investor_slug"] == "BRK"
 
 
 def test_parse_home_respects_requested_investor_slug():

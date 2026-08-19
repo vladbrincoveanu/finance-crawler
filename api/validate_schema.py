@@ -69,6 +69,7 @@ def validate_schema(schema: Dict[str, Any]) -> bool:
         "/review/identity",
         "/review/quarantine",
         "/search",
+        "/crawl/status",
     ]
     
     missing_endpoints = []
@@ -93,6 +94,11 @@ def validate_schema(schema: Dict[str, Any]) -> bool:
         "CuratedHoldingResponse",
         "CuratedInvestorDetailResponse",
         "SearchResultResponse",
+        "CrawlRunResponse",
+        "CrawlCountsResponse",
+        "CrawlHoldingSampleResponse",
+        "CrawlIdeaSampleResponse",
+        "CrawlSourceStatusResponse",
     ]
     
     missing_schemas = []
@@ -151,6 +157,107 @@ def validate_schema(schema: Dict[str, Any]) -> bool:
             + ", ".join(missing_curated_holding_fields)
         )
         return False
+
+    crawl_status_get = paths.get("/crawl/status", {}).get("get", {})
+    crawl_response = (
+        crawl_status_get.get("responses", {}).get("200", {}).get("content", {})
+        .get("application/json", {})
+        .get("schema", {})
+    )
+    if crawl_response.get("type") != "array" or crawl_response.get("items", {}).get(
+        "$ref"
+    ) != "#/components/schemas/CrawlSourceStatusResponse":
+        print("/crawl/status must return an array of CrawlSourceStatusResponse")
+        return False
+
+    crawl_fields = {
+        "CrawlRunResponse": {
+            "id",
+            "source",
+            "target",
+            "status",
+            "parser_version",
+            "started_at",
+            "finished_at",
+            "rows_seen",
+            "rows_accepted",
+            "rows_rejected",
+            "rows_duplicate",
+            "error_message",
+        },
+        "CrawlCountsResponse": {
+            "parser_output",
+            "staged",
+            "pending_identity",
+            "curated",
+            "public",
+        },
+        "CrawlHoldingSampleResponse": {
+            "kind",
+            "investor_name",
+            "ticker",
+            "company_name",
+            "period",
+            "shares",
+            "value_usd",
+            "pct_portfolio",
+            "activity",
+            "identity_status",
+            "source_url",
+        },
+        "CrawlIdeaSampleResponse": {
+            "kind",
+            "ticker",
+            "company_name",
+            "idea_date",
+            "source_url",
+            "link",
+        },
+        "CrawlSourceStatusResponse": {
+            "source",
+            "label",
+            "target",
+            "public_route",
+            "latest_run",
+            "counts",
+            "sample",
+        },
+    }
+    for schema_name, required_fields in crawl_fields.items():
+        definition = schemas.get(schema_name, {})
+        properties = definition.get("properties", {})
+        missing_fields = sorted(required_fields - properties.keys())
+        if missing_fields:
+            print(
+                f"Missing required fields in {schema_name}: "
+                + ", ".join(missing_fields)
+            )
+            return False
+
+    required_contract_fields = {
+        "CrawlRunResponse": set(crawl_fields["CrawlRunResponse"]),
+        "CrawlCountsResponse": set(crawl_fields["CrawlCountsResponse"]),
+        "CrawlHoldingSampleResponse": {
+            "kind",
+            "investor_name",
+            "ticker",
+            "company_name",
+            "period",
+            "identity_status",
+            "source_url",
+        },
+        "CrawlIdeaSampleResponse": {"kind", "idea_date", "source_url", "link"},
+        "CrawlSourceStatusResponse": set(crawl_fields["CrawlSourceStatusResponse"]),
+    }
+    for schema_name, required_fields in required_contract_fields.items():
+        declared_required = set(schemas[schema_name].get("required", []))
+        missing_required = sorted(required_fields - declared_required)
+        if missing_required:
+            print(
+                f"Missing required contract fields in {schema_name}: "
+                + ", ".join(missing_required)
+            )
+            return False
     
     return True
 

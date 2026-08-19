@@ -60,6 +60,29 @@ class IngestionService:
         self.session.commit()
         return run
 
+    def record_item_result(
+        self,
+        run: IngestionRun | str,
+        *,
+        accepted: bool,
+        duplicate: bool = False,
+        error_message: str | None = None,
+        commit: bool = True,
+    ) -> IngestionRun:
+        run_record = self._run(run)
+        run_record.rows_seen += 1
+        if duplicate:
+            run_record.rows_duplicate += 1
+        elif accepted:
+            run_record.rows_accepted += 1
+        else:
+            run_record.rows_rejected += 1
+        if error_message:
+            run_record.error_message = error_message
+        if commit:
+            self.session.commit()
+        return run_record
+
     def record_document(self, run_id: str, page: SourcePage) -> SourceDocument:
         content_hash = hashlib.sha256(page.body).hexdigest()
         document = self.session.query(SourceDocument).filter_by(
@@ -97,8 +120,11 @@ class IngestionService:
             observation = SourceHoldingObservation.model_validate(raw_observation)
         except ValidationError as error:
             run_record = self._run(run)
-            run_record.rows_seen += 1
-            run_record.rows_rejected += 1
+            self.record_item_result(
+                run_record,
+                accepted=False,
+                commit=False,
+            )
             quarantine = QuarantineRecord(
                 run_id=run_record.id,
                 source=str(raw_observation.get("source") or run_record.source),
@@ -118,13 +144,14 @@ class IngestionService:
         self, run: IngestionRun | str, observation: SourceHoldingObservation
     ) -> StageResult:
         run_record = self._run(run)
-        run_record.rows_seen += 1
         existing = self.session.query(SourceHoldingSnapshot).filter_by(
             source=observation.source,
             source_observation_key=observation.source_observation_key,
         ).one_or_none()
         if existing is not None:
-            run_record.rows_duplicate += 1
+            self.record_item_result(
+                run_record, accepted=False, duplicate=True, commit=False
+            )
             self.session.commit()
             return StageResult(status="duplicate", snapshot_id=existing.id)
 
@@ -207,6 +234,7 @@ class IngestionService:
         staging = StagingHoldingSnapshot(
             run=run_record,
             source_snapshot=snapshot,
+            period=observation.period,
             shares=observation.shares,
             value_usd=observation.value_usd,
             pct_portfolio=observation.pct_portfolio,
@@ -214,7 +242,7 @@ class IngestionService:
             identity_status="pending",
         )
         self.session.add(staging)
-        run_record.rows_accepted += 1
+        self.record_item_result(run_record, accepted=True, commit=False)
         self.session.commit()
         return StageResult(status="staged", snapshot_id=snapshot.id)
 
@@ -228,20 +256,28 @@ class IngestionService:
     ) -> list[CuratedHoldingEvent]:
         return project_events(snapshots)
 
-    def finish_run(self, run_id: str) -> IngestionRun:
+    def finish_run(
+        self, run_id: str, error_message: str | None = None
+    ) -> IngestionRun:
         run = self._run(run_id)
-        pending_identity = self.session.query(func.count(StagingHoldingSnapshot.id)).filter_by(
-            run_id=run.id, identity_status="pending"
-        ).scalar()
-        if run.rows_seen == 0:
+        if error_message:
             run.status = "failed"
-        elif run.rows_rejected or pending_identity:
+            run.error_message = error_message
+        elif run.rows_seen == 0:
+            run.status = "failed"
+            run.error_message = run.error_message or "no rows seen"
+        elif run.rows_rejected or self.pending_identity_count(run.id):
             run.status = "partial"
         else:
             run.status = "complete"
         run.finished_at = _utc_now()
         self.session.commit()
         return run
+
+    def pending_identity_count(self, run_id: str) -> int:
+        return self.session.query(func.count(StagingHoldingSnapshot.id)).filter_by(
+            run_id=run_id, identity_status="pending"
+        ).scalar()
 
     def count_source_snapshots(self, run_id: str) -> int:
         return self.session.query(func.count(SourceHoldingSnapshot.id)).filter_by(

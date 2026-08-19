@@ -1,9 +1,10 @@
 """
 Pydantic models for request/response schemas for the ValueInvestorsClub API.
 """
-from typing import Any, Dict, List, Literal, Optional
-from datetime import datetime, date
-from pydantic import BaseModel
+from datetime import date, datetime
+from typing import Annotated, Any, Dict, List, Literal, Optional
+
+from pydantic import BaseModel, Field
 
 
 class PerformanceResponse(BaseModel):
@@ -215,3 +216,72 @@ class SearchResultResponse(BaseModel):
     citation_urls: List[str]
     source_snapshot_ids: List[str]
     score: float
+
+
+CrawlStatus = Literal["running", "complete", "partial", "failed"]
+
+
+class CrawlRunResponse(BaseModel):
+    """The selected run, or an explicit empty run when none exists."""
+
+    id: Optional[str]
+    source: Optional[str]
+    target: Optional[str]
+    status: Optional[CrawlStatus]
+    parser_version: Optional[str]
+    started_at: Optional[datetime]
+    finished_at: Optional[datetime]
+    rows_seen: int
+    rows_accepted: int
+    rows_rejected: int
+    rows_duplicate: int
+    error_message: Optional[str]
+
+
+class CrawlCountsResponse(BaseModel):
+    """Run output counts plus current public totals when a run exists."""
+
+    parser_output: int
+    staged: int
+    pending_identity: int
+    curated: int
+    public: int
+
+
+class CrawlHoldingSampleResponse(BaseModel):
+    kind: Literal["holding"]
+    investor_name: str
+    ticker: str
+    company_name: str
+    period: date
+    shares: Optional[int] = None
+    value_usd: Optional[float] = None
+    pct_portfolio: Optional[float] = None
+    activity: Optional[str] = None
+    identity_status: str
+    source_url: Optional[str]
+
+
+class CrawlIdeaSampleResponse(BaseModel):
+    kind: Literal["idea"]
+    ticker: Optional[str] = None
+    company_name: Optional[str] = None
+    idea_date: datetime
+    source_url: str
+    link: str
+
+
+CrawlSampleResponse = Annotated[
+    CrawlHoldingSampleResponse | CrawlIdeaSampleResponse,
+    Field(discriminator="kind"),
+]
+
+
+class CrawlSourceStatusResponse(BaseModel):
+    source: str
+    label: str
+    target: str
+    public_route: str
+    latest_run: CrawlRunResponse
+    counts: CrawlCountsResponse
+    sample: Optional[CrawlSampleResponse]

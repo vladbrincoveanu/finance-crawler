@@ -18,7 +18,15 @@ import {
 import { useIdeaDetail } from '../hooks/useIdeas';
 import PerformanceChart from '../components/PerformanceChart';
 
-const IdeaDetailPage: React.FC = () => {
+interface IdeaDetailPageProps {
+  basePath?: string;
+  backLabel?: string;
+}
+
+const IdeaDetailPage: React.FC<IdeaDetailPageProps> = ({
+  basePath = '/ideas',
+  backLabel = 'Back to Ideas',
+}) => {
   const { id } = useParams<{ id: string }>();
   const { data: idea, isLoading, isError, error } = useIdeaDetail(id || '');
 
@@ -37,8 +45,8 @@ const IdeaDetailPage: React.FC = () => {
         <Box>
           <Heading size="md" mb={2}>Error loading idea details</Heading>
           <Text>{error instanceof Error ? error.message : 'Unknown error occurred'}</Text>
-          <Button as={RouterLink} to="/ideas" mt={4} colorScheme="blue">
-            Back to Ideas
+          <Button as={RouterLink} to={basePath} mt={4} colorScheme="blue">
+            {backLabel}
           </Button>
         </Box>
       </Alert>
@@ -52,8 +60,8 @@ const IdeaDetailPage: React.FC = () => {
         <Box>
           <Heading size="md" mb={2}>Idea not found</Heading>
           <Text>The investment idea you're looking for doesn't exist or has been removed.</Text>
-          <Button as={RouterLink} to="/ideas" mt={4} colorScheme="blue">
-            Back to Ideas
+          <Button as={RouterLink} to={basePath} mt={4} colorScheme="blue">
+            {backLabel}
           </Button>
         </Box>
       </Alert>
@@ -81,8 +89,8 @@ const IdeaDetailPage: React.FC = () => {
 
   return (
     <Box>
-      <Button as={RouterLink} to="/ideas" mb={4} variant="outline">
-        Back to Ideas
+      <Button as={RouterLink} to={basePath} mb={4} variant="outline">
+        {backLabel}
       </Button>
 
       <Flex 
@@ -110,7 +118,7 @@ const IdeaDetailPage: React.FC = () => {
             </Text>
             <Text fontSize="sm" color="gray.600">
               by{' '}
-              <Link as={RouterLink} to={`/ideas?user_id=${user_id}`} color="blue.500">
+              <Link as={RouterLink} to={`${basePath}?user_id=${user_id}`} color="blue.500">
                 {user?.username || user_id}
               </Link>
             </Text>

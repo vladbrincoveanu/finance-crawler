@@ -14,7 +14,7 @@
     "test:e2e": "cypress run",
     "test:visual": "playwright test",
     "cypress:open": "cypress open",
-    "validate-schema": "ts-node src/types/schema-validator.ts"
+    "validate-schema": "ts-node --esm src/types/schema-validator.ts"
   },
   "dependencies": {
     "@chakra-ui/icons": "^2.2.4",

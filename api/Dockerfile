@@ -23,10 +23,10 @@ RUN pip install -r requirements.txt -r test-requirements.txt
 
 # Set environment variables
 ENV PYTHONPATH=/app
-ENV PORT=8000
+ENV PORT=8010
 
 # Expose the application port
-EXPOSE 8000
+EXPOSE 8010
 
 # Start the API server
-CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8010"]

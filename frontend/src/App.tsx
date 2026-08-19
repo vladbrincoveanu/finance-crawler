@@ -19,6 +19,7 @@ import SourceHoldingsPage from './pages/SourceHoldingsPage';
 import IdentityReviewPage from './pages/IdentityReviewPage';
 import QuarantineReviewPage from './pages/QuarantineReviewPage';
 import AboutPage from './pages/AboutPage';
+import SourcesPage from './pages/SourcesPage';
 
 function App() {
   const [apiStatus, setApiStatus] = useState<'loading' | 'available' | 'error'>('loading');
@@ -89,6 +90,7 @@ function App() {
         <Route path="holdings/hedgefollow" element={<SourceHoldingsPage source="hedgefollow" />} />
         <Route path="review/identity" element={<IdentityReviewPage />} />
         <Route path="review/quarantine" element={<QuarantineReviewPage />} />
+        <Route path="sources" element={<SourcesPage />} />
         <Route path="about" element={<AboutPage />} />
       </Route>
     </Routes>
