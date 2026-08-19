@@ -5,6 +5,14 @@ from datetime import date, datetime
 from typing import Annotated, Any, Dict, List, Literal, Optional
 
 from pydantic import BaseModel, Field
+from pydantic.json_schema import JsonDict
+
+
+def _require_comments_in_schema(schema: JsonDict) -> None:
+    """Document comments as required while keeping its runtime default."""
+    required = schema.setdefault("required", [])
+    if isinstance(required, list) and "comments" not in required:
+        required.append("comments")
 
 
 class PerformanceResponse(BaseModel):
@@ -112,7 +120,10 @@ class IdeaDetailResponse(IdeaResponse):
     performance: Optional[PerformanceResponse] = None
     comments: List[CommentResponse] = Field(default_factory=list)
 
-    model_config = {"from_attributes": True}
+    model_config = {
+        "from_attributes": True,
+        "json_schema_extra": _require_comments_in_schema,
+    }
 
 
 class IdentityCandidateResponse(BaseModel):

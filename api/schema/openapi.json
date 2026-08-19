@@ -2302,7 +2302,8 @@
           "user_id",
           "date",
           "is_short",
-          "is_contest_winner"
+          "is_contest_winner",
+          "comments"
         ],
         "title": "IdeaDetailResponse",
         "description": "Detailed information about an investment idea, including related data."

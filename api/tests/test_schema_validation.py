@@ -41,3 +41,15 @@ def test_schema_validator_requires_idea_detail_comments_field():
     )
 
     assert validate_schema(schema) is False
+
+
+def test_schema_validator_requires_idea_detail_comments_field_to_be_required():
+    schema = deepcopy(app.openapi())
+    idea_detail_response = schema["components"]["schemas"]["IdeaDetailResponse"]
+    idea_detail_response["required"] = [
+        field
+        for field in idea_detail_response.get("required", [])
+        if field != "comments"
+    ]
+
+    assert validate_schema(schema) is False

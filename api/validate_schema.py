@@ -141,6 +141,10 @@ def validate_schema(schema: Dict[str, Any]) -> bool:
         print("IdeaDetailResponse.comments must be an array of CommentResponse")
         return False
 
+    if "comments" not in idea_detail_response.get("required", []):
+        print("IdeaDetailResponse.required must include comments")
+        return False
+
     comment_response = schemas.get("CommentResponse", {})
     comment_properties = comment_response.get("properties", {})
     required_comment_fields = ["id", "author", "posted_at", "text"]
