@@ -17,6 +17,11 @@ import { HamburgerIcon, CloseIcon } from '@chakra-ui/icons';
 
 const Layout: React.FC = () => {
   const { isOpen, onToggle, onClose } = useDisclosure();
+  const toggleRef = React.useRef<HTMLButtonElement>(null);
+  const closeMobileNav = () => {
+    onClose();
+    toggleRef.current?.focus();
+  };
 
   // Define common theme values
   const bgColor = 'rgba(7, 11, 20, 0.88)';
@@ -52,6 +57,7 @@ const Layout: React.FC = () => {
             display={{ base: 'flex', xl: 'none' }}
           >
             <IconButton
+              ref={toggleRef}
               onClick={onToggle}
               icon={isOpen ? <CloseIcon w={3} h={3} /> : <HamburgerIcon w={5} h={5} />}
               variant="ghost"
@@ -69,7 +75,7 @@ const Layout: React.FC = () => {
               fontSize="xl"
               as={RouterLink}
               to="/"
-              onClick={onClose}
+              onClick={closeMobileNav}
             >
               VIC / FIELD NOTES
             </Text>
@@ -91,7 +97,7 @@ const Layout: React.FC = () => {
               fontWeight={400}
               variant="link"
               to="/about"
-              onClick={onClose}
+              onClick={closeMobileNav}
             >
               About
             </Button>
@@ -106,7 +112,7 @@ const Layout: React.FC = () => {
           in={isOpen}
           animateOpacity
         >
-          <MobileNav onClose={onClose} />
+          <MobileNav onClose={closeMobileNav} />
         </Collapse>
       </Box>
 
