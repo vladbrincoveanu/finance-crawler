@@ -8,35 +8,36 @@ import {
   Link,
   SimpleGrid,
   Stack,
-  useColorModeValue,
 } from '@chakra-ui/react';
 
 const HomePage: React.FC = () => {
   return (
     <Box>
       {/* Hero Section */}
-      <Box 
-        bg={useColorModeValue('blue.50', 'blue.900')} 
-        borderRadius="xl" 
-        p={12} 
+      <Box
+        bg="ink.900"
+        border="1px solid"
+        borderColor="whiteAlpha.200"
+        borderRadius="xl"
+        p={12}
         mb={12}
         textAlign="center"
       >
-        <Heading as="h1" size="2xl" mb={4}>
+        <Heading as="h1" size="2xl" mb={4} color="white">
           VIC Analytics Dashboard
         </Heading>
-        <Text fontSize="xl" maxW="3xl" mx="auto" mb={4}>
+        <Text fontSize="xl" maxW="3xl" mx="auto" mb={4} color="whiteAlpha.800">
           Explore and analyze investment ideas from ValueInvestorsClub.com, tracking performance metrics
           and uncovering insights from top value investors.
         </Text>
-        <Text fontSize="md" fontWeight="bold" color="blue.600" maxW="2xl" mx="auto" mb={8}>
+        <Text fontSize="md" fontWeight="bold" color="amber.200" maxW="2xl" mx="auto" mb={8}>
           This is an independent analysis tool not affiliated with ValueInvestorsClub.com
         </Text>
         <Stack direction={{ base: 'column', md: 'row' }} spacing={4} justify="center">
-          <Button as={RouterLink} to="/ideas" size="lg" colorScheme="blue">
+          <Button as={RouterLink} to="/ideas" size="lg" colorScheme="blue" color="white">
             Browse Ideas
           </Button>
-          <Button as={RouterLink} to="/companies" size="lg" variant="outline">
+          <Button as={RouterLink} to="/companies" size="lg" variant="outline" color="whiteAlpha.900">
             View Companies
           </Button>
         </Stack>
@@ -45,10 +46,10 @@ const HomePage: React.FC = () => {
           isExternal
           display="inline-block"
           mt={5}
-          color={useColorModeValue('blue.700', 'blue.200')}
+          color="amber.200"
           fontWeight="600"
           textDecoration="underline"
-          _hover={{ color: useColorModeValue('blue.800', 'blue.100') }}
+          _hover={{ color: 'amber.300' }}
         >
           Open ingestion telemetry
         </Link>
@@ -92,15 +93,17 @@ const HomePage: React.FC = () => {
 
       {/* CTA Section */}
       <Box
-        bg={useColorModeValue('gray.50', 'gray.700')}
+        bg="ink.900"
+        border="1px solid"
+        borderColor="whiteAlpha.200"
         p={8}
         borderRadius="lg"
         textAlign="center"
       >
-        <Heading size="lg" mb={4}>
+        <Heading size="lg" mb={4} color="white">
           Start Exploring Investment Ideas
         </Heading>
-        <Text fontSize="lg" mb={6}>
+        <Text fontSize="lg" mb={6} color="whiteAlpha.800">
           Dive into a wealth of value investing knowledge and performance data
         </Text>
         <Button
@@ -109,6 +112,7 @@ const HomePage: React.FC = () => {
           size="lg"
           colorScheme="blue"
           px={8}
+          color="white"
         >
           Browse Ideas
         </Button>

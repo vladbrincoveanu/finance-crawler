@@ -14,7 +14,13 @@ for (const viewport of viewports) {
     await expect(page.getByText('/articles')).toBeVisible();
     await expect(page.getByText('/holdings/dataroma')).toBeVisible();
     await expect(page.getByText('/holdings/hedgefollow')).toBeVisible();
-    await expect(page).toHaveScreenshot(`sources-routes-${viewport.name}.png`, { fullPage: true });
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
+      viewport.width,
+    );
+    await expect(page).toHaveScreenshot(`sources-routes-${viewport.name}.png`, {
+      fullPage: true,
+      mask: [page.getByTestId('volatile-crawl-data')],
+    });
   });
 
   test(`product dashboard exposes telemetry at ${viewport.name}px`, async ({ page }) => {
@@ -24,6 +30,9 @@ for (const viewport of viewports) {
     await expect(page.getByRole('link', { name: /open ingestion telemetry/i })).toHaveAttribute(
       'href',
       'http://localhost:3001/d/vic-ingestion',
+    );
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
+      viewport.width,
     );
     await expect(page).toHaveScreenshot(`home-telemetry-${viewport.name}.png`, { fullPage: true });
   });

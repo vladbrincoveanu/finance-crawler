@@ -232,9 +232,11 @@ const SourceVerificationCard = ({ source }: { source: CrawlSourceStatus }) => {
             {source.label}
           </Heading>
         </Box>
-        <Badge flexShrink={0} colorScheme={isRunWarning(run) ? 'orange' : run.id ? 'green' : 'gray'} px={3} py={1} borderRadius="full">
-          {getStatusLabel(run)}
-        </Badge>
+        <Box data-testid="volatile-crawl-data">
+          <Badge flexShrink={0} colorScheme={isRunWarning(run) ? 'orange' : run.id ? 'green' : 'gray'} px={3} py={1} borderRadius="full">
+            {getStatusLabel(run)}
+          </Badge>
+        </Box>
       </Flex>
 
       <Text mt={3} color="whiteAlpha.700" fontSize="sm" overflowWrap="anywhere">
@@ -245,29 +247,31 @@ const SourceVerificationCard = ({ source }: { source: CrawlSourceStatus }) => {
             : 'Holding observations remain staged until identity review promotes them to curated data.'}
       </Text>
 
-      <RunMetadata run={run} />
+      <Box data-testid="volatile-crawl-data">
+        <RunMetadata run={run} />
 
-      {isRunWarning(run) && (
-        <Alert status="warning" mt={4} borderRadius="14px" bg="orange.900" color="orange.100">
-          <AlertIcon />
-          <AlertDescription fontSize="sm">
-            {getRunWarningMessage(run)}
-          </AlertDescription>
-        </Alert>
-      )}
+        {isRunWarning(run) && (
+          <Alert status="warning" mt={4} borderRadius="14px" bg="orange.900" color="orange.100">
+            <AlertIcon />
+            <AlertDescription fontSize="sm">
+              {getRunWarningMessage(run)}
+            </AlertDescription>
+          </Alert>
+        )}
 
-      <Box mt={5}>
-        <MetricList source={source} />
-      </Box>
+        <Box mt={5}>
+          <MetricList source={source} />
+        </Box>
 
-      <Box mt={5}>
-        {source.sample ? (
-          <SampleDetails sample={source.sample} label={source.label} />
-        ) : run.id ? (
-          <Box border="1px dashed" borderColor="whiteAlpha.300" borderRadius="16px" p={4}>
-            <Text color="whiteAlpha.700" fontSize="sm">No accepted sample in latest run</Text>
-          </Box>
-        ) : null}
+        <Box mt={5}>
+          {source.sample ? (
+            <SampleDetails sample={source.sample} label={source.label} />
+          ) : run.id ? (
+            <Box border="1px dashed" borderColor="whiteAlpha.300" borderRadius="16px" p={4}>
+              <Text color="whiteAlpha.700" fontSize="sm">No accepted sample in latest run</Text>
+            </Box>
+          ) : null}
+        </Box>
       </Box>
 
       <Text mt={4} color="whiteAlpha.700" fontSize="sm">

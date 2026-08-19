@@ -47,9 +47,9 @@ const Layout: React.FC = () => {
           mx="auto"
         >
           <Flex
-            flex={{ base: 1, md: 'auto' }}
+            flex={{ base: 1, xl: 'auto' }}
             ml={{ base: -2 }}
-            display={{ base: 'flex', md: 'none' }}
+            display={{ base: 'flex', xl: 'none' }}
           >
             <IconButton
               onClick={onToggle}
@@ -58,9 +58,9 @@ const Layout: React.FC = () => {
               aria-label="Toggle Navigation"
             />
           </Flex>
-          <Flex flex={{ base: 1 }} justify={{ base: 'center', md: 'start' }}>
+          <Flex flex={{ base: 1 }} justify={{ base: 'center', xl: 'start' }}>
             <Text
-              textAlign={useBreakpointValue({ base: 'center', md: 'left' })}
+              textAlign={useBreakpointValue({ base: 'center', xl: 'left' })}
               fontFamily="heading"
               color="white"
               fontWeight="bold"
@@ -71,13 +71,13 @@ const Layout: React.FC = () => {
               VIC / FIELD NOTES
             </Text>
 
-            <Flex display={{ base: 'none', md: 'flex' }} ml={10}>
+            <Flex display={{ base: 'none', xl: 'flex' }} ml={10}>
               <DesktopNav />
             </Flex>
           </Flex>
 
           <Stack
-            flex={{ base: 1, md: 0 }}
+            flex={{ base: 1, xl: 0 }}
             justify="flex-end"
             direction="row"
             spacing={6}
@@ -162,7 +162,7 @@ const MobileNav = () => {
     <Stack
       bg="ink.900"
       p={4}
-      display={{ md: 'none' }}
+      display={{ xl: 'none' }}
     >
       {NAV_ITEMS.map((navItem) => (
         <MobileNavItem key={navItem.label} {...navItem} />
