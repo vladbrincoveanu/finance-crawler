@@ -68,7 +68,7 @@ const MetricList = ({ source }: { source: CrawlSourceStatus }) => {
           <Text as="dt" color="whiteAlpha.600" fontSize="xs" textTransform="uppercase" letterSpacing="0.1em">
             {label}
           </Text>
-          <Text as="dd" mt={2} color="white" fontSize="2xl" fontWeight="700">
+          <Text as="dd" data-testid="volatile-crawl-value" mt={2} color="white" fontSize="2xl" fontWeight="700">
             {value}
           </Text>
         </Box>
@@ -81,8 +81,8 @@ const RunMetadata = ({ run }: { run: CrawlRun }) => {
   if (!run.id) {
     return (
       <Box mt={4} borderTop="1px solid" borderColor="whiteAlpha.100" pt={4}>
-        <Text color="white" fontSize="sm" fontWeight="700">No run recorded</Text>
-        <Text mt={1} color="whiteAlpha.700" fontSize="sm">Awaiting operator-run crawl</Text>
+        <Text data-testid="volatile-crawl-value" color="white" fontSize="sm" fontWeight="700">No run recorded</Text>
+        <Text data-testid="volatile-crawl-value" mt={1} color="whiteAlpha.700" fontSize="sm">Awaiting operator-run crawl</Text>
       </Box>
     );
   }
@@ -90,23 +90,23 @@ const RunMetadata = ({ run }: { run: CrawlRun }) => {
   return (
     <Box as="dl" mt={4} borderTop="1px solid" borderColor="whiteAlpha.100" pt={4} display="grid" gridTemplateColumns="minmax(0, auto) minmax(0, 1fr)" columnGap={4} rowGap={2} fontSize="sm" sx={{ '& > dd': { minWidth: 0, overflowWrap: 'anywhere' } }}>
       <Text as="dt" color="whiteAlpha.600">Run status</Text>
-      <Text as="dd" color="white" fontWeight="700">{getStatusLabel(run)}</Text>
+      <Text as="dd" data-testid="volatile-crawl-value" color="white" fontWeight="700">{getStatusLabel(run)}</Text>
       <Text as="dt" color="whiteAlpha.600">Run ID</Text>
-      <Text as="dd" color="whiteAlpha.700" overflowWrap="anywhere">{run.id}</Text>
+      <Text as="dd" data-testid="volatile-crawl-value" color="whiteAlpha.700" overflowWrap="anywhere">{run.id}</Text>
       <Text as="dt" color="whiteAlpha.600">Parser version</Text>
-      <Text as="dd" color="amber.200">{run.parser_version ?? 'Unknown parser'}</Text>
+      <Text as="dd" data-testid="volatile-crawl-value" color="amber.200">{run.parser_version ?? 'Unknown parser'}</Text>
       <Text as="dt" color="whiteAlpha.600">Started</Text>
-      <Text as="dd" color="whiteAlpha.700">
+      <Text as="dd" data-testid="volatile-crawl-value" color="whiteAlpha.700">
         {run.started_at ? <time dateTime={run.started_at}>{formatTimestamp(run.started_at)}</time> : 'Not recorded'}
       </Text>
       <Text as="dt" color="whiteAlpha.600">Finished</Text>
-      <Text as="dd" color="whiteAlpha.700">
+      <Text as="dd" data-testid="volatile-crawl-value" color="whiteAlpha.700">
         {run.finished_at ? <time dateTime={run.finished_at}>{formatTimestamp(run.finished_at)}</time> : 'Still running'}
       </Text>
       <Text as="dt" color="whiteAlpha.600">Rows seen / accepted</Text>
-      <Text as="dd" color="whiteAlpha.700">{run.rows_seen} / {run.rows_accepted}</Text>
+      <Text as="dd" data-testid="volatile-crawl-value" color="whiteAlpha.700">{run.rows_seen} / {run.rows_accepted}</Text>
       <Text as="dt" color="whiteAlpha.600">Rejected / duplicates</Text>
-      <Text as="dd" color="whiteAlpha.700">{run.rows_rejected} / {run.rows_duplicate}</Text>
+      <Text as="dd" data-testid="volatile-crawl-value" color="whiteAlpha.700">{run.rows_rejected} / {run.rows_duplicate}</Text>
     </Box>
   );
 };
@@ -124,61 +124,61 @@ const SampleDetails = ({ sample, label }: { sample: CrawlSample; label: string }
         {sample.investor_name && (
           <>
             <Text as="dt" color="whiteAlpha.600">Investor</Text>
-            <Text as="dd" color="white">{sample.investor_name}</Text>
+            <Text as="dd" data-testid="volatile-crawl-value" color="white">{sample.investor_name}</Text>
           </>
         )}
         {sample.ticker && (
           <>
             <Text as="dt" color="whiteAlpha.600">Ticker</Text>
-            <Text as="dd" color="amber.200" fontWeight="700">{sample.ticker}</Text>
+            <Text as="dd" data-testid="volatile-crawl-value" color="amber.200" fontWeight="700">{sample.ticker}</Text>
           </>
         )}
         {sample.company_name && (
           <>
             <Text as="dt" color="whiteAlpha.600">Company</Text>
-            <Text as="dd" color="white">{sample.company_name}</Text>
+            <Text as="dd" data-testid="volatile-crawl-value" color="white">{sample.company_name}</Text>
           </>
         )}
         {sample.period && (
           <>
             <Text as="dt" color="whiteAlpha.600">Period</Text>
-            <Text as="dd" color="whiteAlpha.700">{sample.period}</Text>
+            <Text as="dd" data-testid="volatile-crawl-value" color="whiteAlpha.700">{sample.period}</Text>
           </>
         )}
         {isIdea && sample.idea_date && (
           <>
             <Text as="dt" color="whiteAlpha.600">Published</Text>
-            <Text as="dd" color="whiteAlpha.700">{`Published ${sample.idea_date.slice(0, 10)}`}</Text>
+            <Text as="dd" data-testid="volatile-crawl-value" color="whiteAlpha.700">{`Published ${sample.idea_date.slice(0, 10)}`}</Text>
           </>
         )}
         {!isIdea && sample.shares != null && (
           <>
             <Text as="dt" color="whiteAlpha.600">Shares</Text>
-            <Text as="dd" color="whiteAlpha.700">{formatNumber(sample.shares)}</Text>
+            <Text as="dd" data-testid="volatile-crawl-value" color="whiteAlpha.700">{formatNumber(sample.shares)}</Text>
           </>
         )}
         {!isIdea && sample.value_usd != null && (
           <>
             <Text as="dt" color="whiteAlpha.600">Value</Text>
-            <Text as="dd" color="whiteAlpha.700">{formatNumber(sample.value_usd, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })}</Text>
+            <Text as="dd" data-testid="volatile-crawl-value" color="whiteAlpha.700">{formatNumber(sample.value_usd, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })}</Text>
           </>
         )}
         {!isIdea && sample.pct_portfolio != null && (
           <>
             <Text as="dt" color="whiteAlpha.600">Portfolio %</Text>
-            <Text as="dd" color="whiteAlpha.700">{formatNumber(sample.pct_portfolio, { maximumFractionDigits: 2 })}%</Text>
+            <Text as="dd" data-testid="volatile-crawl-value" color="whiteAlpha.700">{formatNumber(sample.pct_portfolio, { maximumFractionDigits: 2 })}%</Text>
           </>
         )}
         {!isIdea && sample.activity && (
           <>
             <Text as="dt" color="whiteAlpha.600">Activity</Text>
-            <Text as="dd" color="whiteAlpha.700">{sample.activity}</Text>
+            <Text as="dd" data-testid="volatile-crawl-value" color="whiteAlpha.700">{sample.activity}</Text>
           </>
         )}
         {!isIdea && sample.identity_status && (
           <>
             <Text as="dt" color="whiteAlpha.600">Identity</Text>
-            <Text as="dd" color="whiteAlpha.700">{sample.identity_status}</Text>
+            <Text as="dd" data-testid="volatile-crawl-value" color="whiteAlpha.700">{sample.identity_status}</Text>
           </>
         )}
       </Box>
@@ -232,11 +232,9 @@ const SourceVerificationCard = ({ source }: { source: CrawlSourceStatus }) => {
             {source.label}
           </Heading>
         </Box>
-        <Box data-testid="volatile-crawl-data">
-          <Badge flexShrink={0} colorScheme={isRunWarning(run) ? 'orange' : run.id ? 'green' : 'gray'} px={3} py={1} borderRadius="full">
-            {getStatusLabel(run)}
-          </Badge>
-        </Box>
+        <Badge data-testid="volatile-crawl-value" flexShrink={0} colorScheme={isRunWarning(run) ? 'orange' : run.id ? 'green' : 'gray'} px={3} py={1} borderRadius="full">
+          {getStatusLabel(run)}
+        </Badge>
       </Flex>
 
       <Text mt={3} color="whiteAlpha.700" fontSize="sm" overflowWrap="anywhere">
@@ -247,31 +245,29 @@ const SourceVerificationCard = ({ source }: { source: CrawlSourceStatus }) => {
             : 'Holding observations remain staged until identity review promotes them to curated data.'}
       </Text>
 
-      <Box data-testid="volatile-crawl-data">
-        <RunMetadata run={run} />
+      <RunMetadata run={run} />
 
-        {isRunWarning(run) && (
-          <Alert status="warning" mt={4} borderRadius="14px" bg="orange.900" color="orange.100">
-            <AlertIcon />
-            <AlertDescription fontSize="sm">
-              {getRunWarningMessage(run)}
-            </AlertDescription>
-          </Alert>
-        )}
+      {isRunWarning(run) && (
+        <Alert status="warning" mt={4} borderRadius="14px" bg="orange.900" color="orange.100">
+          <AlertIcon />
+          <AlertDescription data-testid="volatile-crawl-warning" fontSize="sm">
+            {getRunWarningMessage(run)}
+          </AlertDescription>
+        </Alert>
+      )}
 
-        <Box mt={5}>
-          <MetricList source={source} />
-        </Box>
+      <Box mt={5}>
+        <MetricList source={source} />
+      </Box>
 
-        <Box mt={5}>
-          {source.sample ? (
-            <SampleDetails sample={source.sample} label={source.label} />
-          ) : run.id ? (
-            <Box border="1px dashed" borderColor="whiteAlpha.300" borderRadius="16px" p={4}>
-              <Text color="whiteAlpha.700" fontSize="sm">No accepted sample in latest run</Text>
-            </Box>
-          ) : null}
-        </Box>
+      <Box mt={5}>
+        {source.sample ? (
+          <SampleDetails sample={source.sample} label={source.label} />
+        ) : run.id ? (
+          <Box border="1px dashed" borderColor="whiteAlpha.300" borderRadius="16px" p={4}>
+            <Text data-testid="volatile-crawl-value" color="whiteAlpha.700" fontSize="sm">No accepted sample in latest run</Text>
+          </Box>
+        ) : null}
       </Box>
 
       <Text mt={4} color="whiteAlpha.700" fontSize="sm">

@@ -3,7 +3,7 @@ import { defineConfig } from '@playwright/test';
 export default defineConfig({
   testDir: './e2e',
   snapshotDir: './.frontend-design/baselines',
-  snapshotPathTemplate: '{snapshotDir}/{testFileName}-snapshots/{arg}{ext}',
+  snapshotPathTemplate: '{snapshotDir}/{testFileName}-snapshots/{arg}-{platform}{ext}',
   timeout: 30_000,
   expect: { timeout: 5_000 },
   reporter: [['list']],

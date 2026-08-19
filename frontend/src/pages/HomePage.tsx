@@ -37,7 +37,16 @@ const HomePage: React.FC = () => {
           <Button as={RouterLink} to="/ideas" size="lg" colorScheme="blue" color="white">
             Browse Ideas
           </Button>
-          <Button as={RouterLink} to="/companies" size="lg" variant="outline" color="whiteAlpha.900">
+          <Button
+            as={RouterLink}
+            to="/companies"
+            size="lg"
+            variant="outline"
+            color="whiteAlpha.900"
+            borderColor="whiteAlpha.500"
+            _hover={{ bg: 'whiteAlpha.200', color: 'white', borderColor: 'amber.300' }}
+            _active={{ bg: 'whiteAlpha.300', color: 'white', borderColor: 'amber.300' }}
+          >
             View Companies
           </Button>
         </Stack>

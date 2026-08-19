@@ -122,7 +122,9 @@ const Layout: React.FC = () => {
           justify={{ base: 'center', md: 'space-between' }}
           align={{ base: 'center', md: 'center' }}
         >
-          <Text>© {new Date().getFullYear()} VIC Analytics Dashboard. Not affiliated with ValueInvestorsClub.com</Text>
+          <Text>
+            © <Text as="span" data-testid="footer-year">{new Date().getFullYear()}</Text> VIC Analytics Dashboard. Not affiliated with ValueInvestorsClub.com
+          </Text>
         </Container>
       </Box>
     </Box>
