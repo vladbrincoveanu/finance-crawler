@@ -176,3 +176,36 @@ def test_comment_count_reflects_comments():
 def test_discussion_precedes_source():
     doc = vic_note.render(_item(comments=_COMMENTS))[1]
     assert doc.index("## Discussion") < doc.index("## Source")
+
+
+def test_merge_returns_document_when_no_existing_file():
+    _, doc = vic_note.render(_item())
+    assert vic_note.merge(None, doc) == doc
+
+
+def test_merge_preserves_text_written_after_the_end_marker():
+    _, first = vic_note.render(_item())
+    annotated = first + "\n## My notes\n\nI bought this.\n"
+    _, second = vic_note.render(_item(comments=_COMMENTS))
+    merged = vic_note.merge(annotated, second)
+    assert "## My notes" in merged
+    assert "I bought this." in merged
+
+
+def test_merge_refreshes_the_generated_region():
+    _, first = vic_note.render(_item())
+    annotated = first + "\n## My notes\n\nI bought this.\n"
+    _, second = vic_note.render(_item(comments=_COMMENTS))
+    merged = vic_note.merge(annotated, second)
+    assert "## Discussion" in merged
+    assert _frontmatter(merged)["comment_count"] == "2"
+
+
+def test_merge_is_idempotent():
+    _, doc = vic_note.render(_item())
+    assert vic_note.merge(vic_note.merge(None, doc), doc) == doc
+
+
+def test_merge_replaces_file_lacking_markers():
+    _, doc = vic_note.render(_item())
+    assert vic_note.merge("hand written, no markers\n", doc) == doc

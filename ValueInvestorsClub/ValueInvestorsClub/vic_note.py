@@ -110,3 +110,11 @@ def _body(item: Mapping[str, Any]) -> str:
 
 def render(item: Mapping[str, Any]) -> tuple[str, str]:
     return note_path(item), _frontmatter(item) + "\n" + _body(item)
+
+
+def merge(existing: str | None, document: str) -> str:
+    """Replace generated content while keeping text after the end marker."""
+    if not existing or END_MARKER not in existing:
+        return document
+    tail = existing.split(END_MARKER, 1)[1]
+    return document.rstrip("\n") + "\n" + tail.lstrip("\n") if tail.strip() else document
