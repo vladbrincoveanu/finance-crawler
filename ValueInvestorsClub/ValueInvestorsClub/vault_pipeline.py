@@ -8,6 +8,7 @@ returned unchanged.
 import logging
 import os
 from pathlib import Path
+from typing import Any
 
 try:
     from ValueInvestorsClub import vic_note
@@ -21,14 +22,14 @@ _logger = logging.getLogger(__name__)
 
 
 class VaultProjectionPipeline:
-    def __init__(self, vault_root=None):
+    def __init__(self, vault_root: str | os.PathLike[str] | None = None) -> None:
         root = vault_root or os.getenv("VAULT_NOTES_DIR", "")
         self.vault_root = Path(root) if root else None
         self.enabled = self.vault_root is not None
         if not self.enabled:
             _logger.warning("VAULT_NOTES_DIR unset; vault projection disabled.")
 
-    def process_item(self, item, spider=None):
+    def process_item(self, item: Any, spider: Any = None) -> Any:
         if not self.enabled:
             return item
         if not isinstance(item, ValueinvestorsclubItem):
@@ -39,6 +40,6 @@ class VaultProjectionPipeline:
             target.parent.mkdir(parents=True, exist_ok=True)
             existing = target.read_text(encoding="utf-8") if target.exists() else None
             target.write_text(vic_note.merge(existing, document), encoding="utf-8")
-        except Exception as exc:
-            _logger.error("Vault projection failed for %s: %s", item.get("idea_id"), exc)
+        except Exception:
+            _logger.exception("Vault projection failed for %s", item.get("idea_id"))
         return item
