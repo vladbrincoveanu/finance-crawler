@@ -64,7 +64,7 @@ COOKIES_ENABLED = os.getenv("COOKIES_ENABLED", "true").lower() in {"1", "true", 
 DEFAULT_REQUEST_HEADERS = {
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
     "Accept-Language": "en-US,en;q=0.9",
-    "Accept-Encoding": "gzip, deflate",
+    "Accept-Encoding": "gzip, deflate, br",
     "DNT": "1",
     "Connection": "keep-alive",
     "Upgrade-Insecure-Requests": "1",
@@ -89,7 +89,7 @@ DEFAULT_REQUEST_HEADERS = {
 DOWNLOADER_MIDDLEWARES = {
     'scrapy.downloadermiddlewares.useragent.UserAgentMiddleware': None,
     'ValueInvestorsClub.middlewares.ModernUserAgentMiddleware': 400,
-    'ValueInvestorsClub.middlewares.BanAwareThrottleMiddleware': 560,
+    'ValueInvestorsClub.middlewares.BanAwareThrottleMiddleware': 543,
 }
 
 # Use modern user agent by default (set MODERN_USER_AGENT=false to use random old ones)
@@ -108,13 +108,14 @@ RANDOM_UA_TYPE = os.getenv("RANDOM_UA_TYPE", "desktop.chrome")
 # File export only runs when explicitly requested (PIPELINE_MODE includes "file").
 _pipeline_mode = (os.getenv("PIPELINE_MODE", "sql").strip().lower() or "sql")
 _pipelines = {}
+_sql_enabled = "sql" in _pipeline_mode or _pipeline_mode in {"db", "database"}
 if "file" in _pipeline_mode or _pipeline_mode in {"fs", "filesystem"}:
     _pipelines["ValueInvestorsClub.pipelines.FileExportPipeline"] = 200
-if "sql" in _pipeline_mode or _pipeline_mode in {"db", "database"}:
+if _sql_enabled:
     _pipelines["ValueInvestorsClub.pipelines.SqlPipeline"] = 300
 if "source" in _pipeline_mode or "holdings" in _pipeline_mode:
     _pipelines["ValueInvestorsClub.holding_pipeline.HoldingPipeline"] = 300
-if "vault" in _pipeline_mode:
+if "vault" in _pipeline_mode and _sql_enabled:
     _pipelines["ValueInvestorsClub.vault_pipeline.VaultProjectionPipeline"] = 400
 ITEM_PIPELINES = _pipelines
 

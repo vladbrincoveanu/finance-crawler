@@ -123,6 +123,11 @@ def test_body_marks_shorts():
     assert "· Short" in doc
 
 
+def test_body_treats_string_false_as_long():
+    doc = vic_note.render(_item(isShort="false"))[1]
+    assert "· Long" in doc
+
+
 def test_body_has_sections_and_source_link():
     doc = vic_note.render(_item())[1]
     assert "## Thesis" in doc

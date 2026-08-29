@@ -28,8 +28,12 @@ def _yaml_str(value: Any) -> str:
     return json.dumps(text, ensure_ascii=True)
 
 
+def _is_true(value: Any) -> bool:
+    return value is True
+
+
 def _yaml_bool(value: Any) -> str:
-    return "true" if value is True else "false"
+    return "true" if _is_true(value) else "false"
 
 
 def _frontmatter(item: Mapping[str, Any]) -> str:
@@ -93,7 +97,7 @@ def _body(item: Mapping[str, Any]) -> str:
     ticker = item.get("ticker") or "UNKNOWN"
     author = item.get("username") or "unknown"
     date_iso = item.get("date_iso") or ""
-    side = "Short" if item.get("isShort") else "Long"
+    side = "Short" if _is_true(item.get("isShort")) else "Long"
 
     parts = [
         f"{BEGIN_MARKER}\n",

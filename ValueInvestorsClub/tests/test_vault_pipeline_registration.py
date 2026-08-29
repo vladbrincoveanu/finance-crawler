@@ -30,3 +30,8 @@ def test_vault_pipeline_registered_at_400(monkeypatch):
 def test_vault_pipeline_absent_by_default(monkeypatch):
     pipelines = _pipelines("sql", monkeypatch)
     assert not any("vault" in key for key in pipelines)
+
+
+def test_vault_pipeline_requires_sql_mode(monkeypatch):
+    pipelines = _pipelines("vault", monkeypatch)
+    assert not any("vault" in key for key in pipelines)
