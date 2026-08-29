@@ -5,6 +5,9 @@ import re
 from collections.abc import Mapping
 from typing import Any
 
+BEGIN_MARKER = "<!-- vic:begin -->"
+END_MARKER = "<!-- vic:end -->"
+
 
 def safe_segment(value: str) -> str:
     segment = re.sub(r"\s+", "_", str(value or "").strip())
@@ -47,5 +50,37 @@ def _frontmatter(item: Mapping[str, Any]) -> str:
     return f"---\n{body}\n---\n"
 
 
+def _paragraphs(text: str) -> str:
+    """Rejoin cleaned lines with blank lines so Markdown renders paragraphs."""
+    lines = [line.strip() for line in (text or "").split("\n") if line.strip()]
+    return "\n\n".join(lines)
+
+
+def _section(heading: str, text: str) -> str:
+    body = _paragraphs(text)
+    if not body:
+        return ""
+    return f"## {heading}\n\n{body}\n\n"
+
+
+def _body(item: Mapping[str, Any]) -> str:
+    company = item.get("companyName") or "Unknown company"
+    ticker = item.get("ticker") or "UNKNOWN"
+    author = item.get("username") or "unknown"
+    date_iso = item.get("date_iso") or ""
+    side = "Short" if item.get("isShort") else "Long"
+
+    parts = [
+        f"{BEGIN_MARKER}\n",
+        f"# {company} ([[{ticker}]])\n\n",
+        f"Idea by [[{author}]] · {date_iso} · {side}\n\n",
+        _section("Thesis", item.get("description") or ""),
+        _section("Catalysts", item.get("catalysts") or ""),
+        f"## Source\n\n[Original on VIC]({item.get('link') or ''})\n\n",
+        f"{END_MARKER}\n",
+    ]
+    return "".join(parts)
+
+
 def render(item: Mapping[str, Any]) -> tuple[str, str]:
-    return note_path(item), _frontmatter(item)
+    return note_path(item), _frontmatter(item) + "\n" + _body(item)

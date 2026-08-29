@@ -105,3 +105,37 @@ def test_frontmatter_parses_winner_and_comment_count():
 def test_frontmatter_treats_string_false_as_false():
     fm = _frontmatter(vic_note.render(_item(isShort="false"))[1])
     assert fm["is_short"] == "false"
+
+
+def test_body_restores_paragraph_breaks():
+    doc = vic_note.render(_item())[1]
+    assert "Thesis line one.\n\nThesis line two." in doc
+
+
+def test_body_has_title_and_wikilinks():
+    doc = vic_note.render(_item())[1]
+    assert "# Apple Inc. ([[AAPL]])" in doc
+    assert "Idea by [[someuser]] · 2019-04-12 · Long" in doc
+
+
+def test_body_marks_shorts():
+    doc = vic_note.render(_item(isShort=True))[1]
+    assert "· Short" in doc
+
+
+def test_body_has_sections_and_source_link():
+    doc = vic_note.render(_item())[1]
+    assert "## Thesis" in doc
+    assert "## Catalysts" in doc
+    assert "[Original on VIC](https://valueinvestorsclub.com/idea/APPLE/1234567)" in doc
+
+
+def test_body_is_wrapped_in_generated_markers():
+    doc = vic_note.render(_item())[1]
+    assert vic_note.BEGIN_MARKER in doc
+    assert doc.rstrip().endswith(vic_note.END_MARKER)
+
+
+def test_empty_catalysts_section_is_omitted():
+    doc = vic_note.render(_item(catalysts=""))[1]
+    assert "## Catalysts" not in doc
