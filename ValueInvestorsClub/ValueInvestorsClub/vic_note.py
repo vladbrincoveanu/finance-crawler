@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import re
 from collections.abc import Mapping
 from typing import Any
@@ -21,12 +22,11 @@ def note_path(item: Mapping[str, Any]) -> str:
 
 def _yaml_str(value: Any) -> str:
     text = "" if value is None else str(value)
-    escaped = text.replace("\\", "\\\\").replace('"', '\\"')
-    return f'"{escaped}"'
+    return json.dumps(text, ensure_ascii=True)
 
 
 def _yaml_bool(value: Any) -> str:
-    return "true" if value else "false"
+    return "true" if value is True else "false"
 
 
 def _frontmatter(item: Mapping[str, Any]) -> str:

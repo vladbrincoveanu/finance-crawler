@@ -1,3 +1,5 @@
+import yaml
+
 from ValueInvestorsClub.ValueInvestorsClub import vic_note
 
 
@@ -27,6 +29,12 @@ def _frontmatter(doc: str) -> dict:
         k, v = line.split(": ", 1)
         out[k] = v
     return out
+
+
+def _parsed_frontmatter(doc: str) -> dict:
+    assert doc.startswith("---\n")
+    block = doc.split("---\n", 2)[1]
+    return yaml.safe_load(block)
 
 
 def test_note_path_is_ticker_sharded():
@@ -84,3 +92,22 @@ def test_render_returns_path_and_document():
     path, doc = vic_note.render(_item())
     assert path == "vic/AAPL/2019-04-12__someuser__1234567.md"
     assert doc.startswith("---\n")
+
+
+def test_frontmatter_is_valid_yaml_for_control_characters():
+    company_name = 'Line one\nLine two\r\t\0\x01"quoted"\\ caf\u00e9'
+    fm = _parsed_frontmatter(vic_note.render(_item(companyName=company_name))[1])
+    assert fm["company"] == company_name
+
+
+def test_frontmatter_parses_winner_and_comment_count():
+    fm = _parsed_frontmatter(
+        vic_note.render(_item(isContestWinner=True, comments=[{}, {}]))[1]
+    )
+    assert fm["is_contest_winner"] is True
+    assert fm["comment_count"] == 2
+
+
+def test_frontmatter_treats_string_false_as_false():
+    fm = _frontmatter(vic_note.render(_item(isShort="false"))[1])
+    assert fm["is_short"] == "false"
