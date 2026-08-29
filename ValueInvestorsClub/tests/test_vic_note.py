@@ -19,6 +19,16 @@ def _item(**over):
     return base
 
 
+def _frontmatter(doc: str) -> dict:
+    assert doc.startswith("---\n")
+    block = doc.split("---\n", 2)[1]
+    out = {}
+    for line in block.strip().split("\n"):
+        k, v = line.split(": ", 1)
+        out[k] = v
+    return out
+
+
 def test_note_path_is_ticker_sharded():
     assert vic_note.note_path(_item()) == "vic/AAPL/2019-04-12__someuser__1234567.md"
 
@@ -50,3 +60,27 @@ def test_note_path_falls_back_when_idea_id_is_missing():
     item = _item()
     del item["idea_id"]
     assert vic_note.note_path(item) == "vic/AAPL/2019-04-12__someuser__unknown-id.md"
+
+
+def test_frontmatter_carries_search_keys():
+    fm = _frontmatter(vic_note.render(_item())[1])
+    assert fm["source"] == '"vic"'
+    assert fm["source_id"] == '"1234567"'
+    assert fm["ticker"] == '"AAPL"'
+    assert fm["company"] == '"Apple Inc."'
+    assert fm["author"] == '"someuser"'
+    assert fm["date"] == '"2019-04-12"'
+    assert fm["url"] == '"https://valueinvestorsclub.com/idea/APPLE/1234567"'
+    assert fm["is_short"] == "false"
+    assert fm["comment_count"] == "0"
+
+
+def test_frontmatter_escapes_quotes_in_company_name():
+    fm = _frontmatter(vic_note.render(_item(companyName='The "Big" Co'))[1])
+    assert fm["company"] == '"The \\"Big\\" Co"'
+
+
+def test_render_returns_path_and_document():
+    path, doc = vic_note.render(_item())
+    assert path == "vic/AAPL/2019-04-12__someuser__1234567.md"
+    assert doc.startswith("---\n")
