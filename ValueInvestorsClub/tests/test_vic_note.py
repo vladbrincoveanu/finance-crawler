@@ -35,3 +35,18 @@ def test_note_path_falls_back_when_fields_missing():
 def test_note_path_sanitises_unsafe_segments():
     path = vic_note.note_path(_item(ticker="BRK/B", username="a b/c"))
     assert path == "vic/BRKB/2019-04-12__a_bc__1234567.md"
+
+
+def test_safe_segment_falls_back_for_whitespace_only_input():
+    assert vic_note.safe_segment(" \t\n") == "unknown"
+
+
+def test_safe_segment_falls_back_for_dot_segments():
+    assert vic_note.safe_segment(".") == "unknown"
+    assert vic_note.safe_segment("..") == "unknown"
+
+
+def test_note_path_falls_back_when_idea_id_is_missing():
+    item = _item()
+    del item["idea_id"]
+    assert vic_note.note_path(item) == "vic/AAPL/2019-04-12__someuser__unknown-id.md"
