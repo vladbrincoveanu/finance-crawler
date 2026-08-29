@@ -139,3 +139,40 @@ def test_body_is_wrapped_in_generated_markers():
 def test_empty_catalysts_section_is_omitted():
     doc = vic_note.render(_item(catalysts=""))[1]
     assert "## Catalysts" not in doc
+
+
+_COMMENTS = [
+    {"author": "bob", "when": "2019-04-14", "text": "Seasonal, not structural."},
+    {"author": "sue", "when": "", "text": "Line one.\nLine two."},
+]
+
+
+def test_discussion_renders_each_comment_as_blockquote():
+    doc = vic_note.render(_item(comments=_COMMENTS))[1]
+    assert "## Discussion" in doc
+    assert "**bob** · 2019-04-14" in doc
+    assert "> Seasonal, not structural." in doc
+
+
+def test_discussion_omits_missing_timestamp():
+    doc = vic_note.render(_item(comments=_COMMENTS))[1]
+    assert "**sue**\n" in doc
+
+
+def test_discussion_blockquotes_every_line():
+    doc = vic_note.render(_item(comments=_COMMENTS))[1]
+    assert "> Line one.\n>\n> Line two." in doc
+
+
+def test_discussion_section_omitted_when_no_comments():
+    assert "## Discussion" not in vic_note.render(_item(comments=[]))[1]
+
+
+def test_comment_count_reflects_comments():
+    doc = vic_note.render(_item(comments=_COMMENTS))[1]
+    assert _frontmatter(doc)["comment_count"] == "2"
+
+
+def test_discussion_precedes_source():
+    doc = vic_note.render(_item(comments=_COMMENTS))[1]
+    assert doc.index("## Discussion") < doc.index("## Source")

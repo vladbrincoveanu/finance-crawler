@@ -63,6 +63,31 @@ def _section(heading: str, text: str) -> str:
     return f"## {heading}\n\n{body}\n\n"
 
 
+def _blockquote(text: str) -> str:
+    body = _paragraphs(text)
+    if not body:
+        return ""
+    return "\n".join(f"> {line}" if line else ">" for line in body.split("\n"))
+
+
+def _discussion(comments: Any) -> str:
+    comments = comments or []
+    if not comments:
+        return ""
+    blocks = []
+    for comment in comments:
+        author = (comment.get("author") or "anonymous").strip() or "anonymous"
+        when = (comment.get("when") or "").strip()
+        quoted = _blockquote(comment.get("text") or "")
+        if not quoted:
+            continue
+        header = f"**{author}** · {when}" if when else f"**{author}**"
+        blocks.append(f"{header}\n{quoted}")
+    if not blocks:
+        return ""
+    return "## Discussion\n\n" + "\n\n".join(blocks) + "\n\n"
+
+
 def _body(item: Mapping[str, Any]) -> str:
     company = item.get("companyName") or "Unknown company"
     ticker = item.get("ticker") or "UNKNOWN"
@@ -76,6 +101,7 @@ def _body(item: Mapping[str, Any]) -> str:
         f"Idea by [[{author}]] · {date_iso} · {side}\n\n",
         _section("Thesis", item.get("description") or ""),
         _section("Catalysts", item.get("catalysts") or ""),
+        _discussion(item.get("comments")),
         f"## Source\n\n[Original on VIC]({item.get('link') or ''})\n\n",
         f"{END_MARKER}\n",
     ]
