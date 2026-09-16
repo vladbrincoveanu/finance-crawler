@@ -108,12 +108,15 @@ RANDOM_UA_TYPE = os.getenv("RANDOM_UA_TYPE", "desktop.chrome")
 # File export only runs when explicitly requested (PIPELINE_MODE includes "file").
 _pipeline_mode = (os.getenv("PIPELINE_MODE", "sql").strip().lower() or "sql")
 _pipelines = {}
+_sql_enabled = "sql" in _pipeline_mode or _pipeline_mode in {"db", "database"}
 if "file" in _pipeline_mode or _pipeline_mode in {"fs", "filesystem"}:
     _pipelines["ValueInvestorsClub.pipelines.FileExportPipeline"] = 200
-if "sql" in _pipeline_mode or _pipeline_mode in {"db", "database"}:
+if _sql_enabled:
     _pipelines["ValueInvestorsClub.pipelines.SqlPipeline"] = 300
 if "source" in _pipeline_mode or "holdings" in _pipeline_mode:
     _pipelines["ValueInvestorsClub.holding_pipeline.HoldingPipeline"] = 300
+if "vault" in _pipeline_mode and _sql_enabled:
+    _pipelines["ValueInvestorsClub.vault_pipeline.VaultProjectionPipeline"] = 400
 ITEM_PIPELINES = _pipelines
 
 # Enable and configure the AutoThrottle extension (disabled by default)
