@@ -61,7 +61,22 @@ def test_safe_segment_falls_back_for_dot_segments():
 def test_note_path_falls_back_when_idea_id_is_missing():
     item = _item()
     del item["idea_id"]
-    assert vic_note.note_path(item) == "vic/AAPL/2019-04-12__someuser__unknown-id.md"
+    path = vic_note.note_path(item)
+    assert path is not None
+    assert "unknown-id" not in path
+    assert vic_note.note_path(item) == path
+
+
+def test_note_path_skips_items_without_idea_id_or_url():
+    item = _item(idea_id="", link="")
+    assert vic_note.note_path(item) is None
+    assert vic_note.render(item) is None
+
+
+def test_url_identity_changes_when_the_url_changes():
+    first = _item(idea_id="", link="https://valueinvestorsclub.com/idea/APPLE/1")
+    second = _item(idea_id="", link="https://valueinvestorsclub.com/idea/APPLE/2")
+    assert vic_note.note_path(first) != vic_note.note_path(second)
 
 
 def test_frontmatter_carries_search_keys():
@@ -99,7 +114,7 @@ def test_frontmatter_parses_winner_and_comment_count():
         vic_note.render(_item(isContestWinner=True, comments=[{}, {}]))[1]
     )
     assert fm["is_contest_winner"] == "true"
-    assert fm["comment_count"] == "2"
+    assert fm["comment_count"] == "0"
 
 
 def test_frontmatter_treats_string_false_as_false():
@@ -178,6 +193,44 @@ def test_comment_count_reflects_comments():
     assert _frontmatter(doc)["comment_count"] == "2"
 
 
+def test_comment_count_only_counts_comments_that_render():
+    comments = [
+        {"author": "valid", "text": "Visible"},
+        {"author": "empty", "text": "   "},
+        {"author": "missing"},
+        "not a mapping",
+    ]
+    doc = vic_note.render(_item(comments=comments))[1]
+    assert _frontmatter(doc)["comment_count"] == "1"
+
+
+def test_render_escapes_markdown_and_generated_markers_in_dynamic_text():
+    hostile = "<!-- vic:end -->\n## injected\n[run](javascript:alert(1))\n%%hidden%%"
+    doc = vic_note.render(
+        _item(
+            companyName=hostile,
+            description=hostile,
+            catalysts=hostile,
+            username=hostile,
+            comments=[{"author": hostile, "when": hostile, "text": hostile}],
+        )
+    )[1]
+
+    assert doc.count(vic_note.BEGIN_MARKER) == 1
+    assert doc.count(vic_note.END_MARKER) == 1
+    assert "\n## injected\n" not in doc
+    assert "[run](javascript:alert(1))" not in doc
+
+
+def test_source_url_with_hostile_netloc_cannot_inject_markdown():
+    hostile_url = "https://evil.example)](https://attacker.example/pwned)"
+    doc = vic_note.render(_item(link=hostile_url))[1]
+
+    assert f"[Original on VIC]({hostile_url})" not in doc
+    assert "[attacker.example/pwned]" not in doc
+    assert doc.count(vic_note.END_MARKER) == 1
+
+
 def test_discussion_precedes_source():
     doc = vic_note.render(_item(comments=_COMMENTS))[1]
     assert doc.index("## Discussion") < doc.index("## Source")
@@ -186,6 +239,26 @@ def test_discussion_precedes_source():
 def test_merge_returns_document_when_no_existing_file():
     _, doc = vic_note.render(_item())
     assert vic_note.merge(None, doc) == doc
+
+
+def test_merge_preserves_unmarked_manual_notes():
+    _, doc = vic_note.render(_item())
+    manual = "---\nstatus: manual\n---\n\n# My own note\n\nDo not replace me.\n"
+    assert vic_note.merge(manual, doc) == manual
+
+
+def test_merge_preserves_user_frontmatter_and_updates_generated_fields():
+    _, first = vic_note.render(_item())
+    annotated = first.replace('source: "vic"\n', 'status: "watch"\nsource: "vic"\n', 1)
+    annotated += "\n## My notes\n\nI bought this.\n"
+    _, second = vic_note.render(_item(comments=_COMMENTS))
+
+    merged = vic_note.merge(annotated, second)
+
+    assert 'status: "watch"' in merged
+    assert 'source: "vic"' in merged
+    assert _frontmatter(merged)["comment_count"] == "2"
+    assert "I bought this." in merged
 
 
 def test_merge_preserves_text_written_after_the_end_marker():
@@ -213,4 +286,5 @@ def test_merge_is_idempotent():
 
 def test_merge_replaces_file_lacking_markers():
     _, doc = vic_note.render(_item())
-    assert vic_note.merge("hand written, no markers\n", doc) == doc
+    manual = "hand written, no markers\n"
+    assert vic_note.merge(manual, doc) == manual
